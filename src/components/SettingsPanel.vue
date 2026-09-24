@@ -146,7 +146,7 @@ const bool = (key: BoolKey): boolean => prefs[key]
         />
       </label>
 
-      <div class="field-row">
+      <label class="field-row">
         <span>
           <span class="ui text-[0.9375rem] font-medium text-ink">Appearance</span>
           <span class="mt-0.5 block max-w-[54ch] text-[0.875rem] leading-snug text-soft">
@@ -158,7 +158,7 @@ const bool = (key: BoolKey): boolean => prefs[key]
           <option value="light">Paper</option>
           <option value="dark">Ink</option>
         </select>
-      </div>
+      </label>
     </div>
 
     <p v-if="running" class="mt-4 text-[0.875rem] leading-snug text-soft">
