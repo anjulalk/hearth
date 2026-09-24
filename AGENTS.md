@@ -67,9 +67,11 @@ way to keep the strong hold while the user works in the agents' window.
 
 ## Deploy
 
-GitHub Pages, from the workflow. Two settings are made by hand once: Pages source must be
-GitHub Actions, and the custom domain is set under Pages (the workflow token gets 403 from
-the Pages settings API). The CNAME is in `public/`.
+GitHub Pages, from the workflow. Two repository settings are made once, and both can be
+made with the API here: Pages source is `workflow`, and the custom domain is set with
+`gh api -X PUT /repos/<owner>/hearth/pages -f cname=hearth.anjula.dev`. The CNAME is in
+`public/`. `https_enforced` waits on a GitHub certificate that a Cloudflare-proxied record
+may never ask for; the site is served over HTTPS anyway.
 
 ## Releases
 

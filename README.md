@@ -125,13 +125,21 @@ non-zero, so it works as a post-deploy gate.
 
 ## Deployment
 
-GitHub Pages serves the repository root of the custom subdomain. The workflow builds
-with `BASE_PATH=/`, and `public/CNAME` carries the domain.
+GitHub Pages serves the repository root of the custom subdomain. The workflow builds with
+`BASE_PATH=/`, and `public/CNAME` carries the domain.
 
-Two things are made by hand once, in the repository settings: **Pages source** must be
-GitHub Actions, and the **custom domain** must be set under Pages. The workflow token
-answers 403 to the Pages settings API, so it cannot do either. The DNS record at
-Cloudflare points `hearth.anjula.dev` at GitHub, the way the other subdomains do.
+The two repository settings are made once, and here they can be made with the API rather
+than by hand:
+
+```bash
+gh api -X POST /repos/<owner>/hearth/pages -f build_type=workflow
+gh api -X PUT /repos/<owner>/hearth/pages -f cname=hearth.anjula.dev
+```
+
+`https_enforced` cannot be turned on until GitHub has provisioned its own certificate for
+the domain, which a Cloudflare-proxied record may never ask for. The site is served over
+HTTPS either way. The DNS record points `hearth.anjula.dev` at GitHub, the way the other
+subdomains do.
 
 ## Privacy
 
