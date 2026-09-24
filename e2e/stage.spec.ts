@@ -164,6 +164,32 @@ test.describe('the watch', () => {
     await expect(page.getByText(/let the quiet audio track start/)).toHaveCount(0)
   })
 
+  test('asks for the lock again when the browser lets it go', async ({ page }) => {
+    await openPanel(page, { stub: 'releasable' })
+    await startWatch(page)
+    await expect(page).toHaveTitle(/^screen lock held/)
+
+    const requests = (): Promise<number> =>
+      page.evaluate(() => (window as unknown as { __wake: { requests: number } }).__wake.requests)
+    expect(await requests()).toBe(1)
+
+    // A suspend, a battery saver, or memory pressure can take the lock without
+    // the page ever going hidden.
+    await page.evaluate(() => {
+      const sentinel = (window as unknown as { __sentinel: { release: () => Promise<void> } })
+        .__sentinel
+      void sentinel.release()
+    })
+
+    // The backoff starts at a second, so this waits for the first retry.
+    await page.waitForFunction(
+      () => (window as unknown as { __wake: { requests: number } }).__wake.requests > 1,
+      undefined,
+      { timeout: 10_000 },
+    )
+    await expect(page).toHaveTitle(/^screen lock held/)
+  })
+
   test('offers the mini window exactly where the browser has it', async ({ page }) => {
     await openPanel(page, { stub: true })
     await startWatch(page)

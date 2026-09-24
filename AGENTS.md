@@ -66,6 +66,11 @@ hidden video element; a tab playing media is exempt from Chromium's background f
 and from timer throttling. The mini window is a second visible document, which is the only
 way to keep the strong hold while the user works in the agents' window.
 
+A lock that goes away comes back: `awake.ts` asks again, with a backoff, on
+`visibilitychange`, on `pageshow` and `focus`, and on the page lifecycle's `resume`, because
+a system suspend can take the lock without the page ever going hidden. The interface tests
+release a stubbed lock and watch the retry.
+
 ## Deploy
 
 GitHub Pages, from the workflow. Two repository settings are made once, and both can be

@@ -23,10 +23,11 @@ export interface PanelOptions {
   prefs?: Partial<typeof PREFERENCES>
   /**
    * A wake lock and a battery that always answer the same way. Screenshots need
-   * that; the behaviour tests use the real browser instead. `deny-lock` is the
-   * case worth testing by hand: a browser that refuses the strong hold.
+   * that; the behaviour tests use the real browser instead. `deny-lock` is a
+   * browser that refuses the strong hold, and `releasable` is one that hands it
+   * over and then lets it go, so the retry can be watched.
    */
-  stub?: boolean | 'deny-lock'
+  stub?: boolean | 'deny-lock' | 'releasable'
   /**
    * `fixed` freezes the clock, which makes screenshots comparable. `running`
    * installs a clock the test can push forward, for the timers.
@@ -44,21 +45,36 @@ export async function openPanel(page: Page, options: PanelOptions = {}): Promise
   }, prefs)
 
   if (options.stub) {
-    await page.addInitScript((deny: boolean) => {
-      const sentinel = {
-        released: false,
-        addEventListener() {},
-        removeEventListener() {},
-        release: async () => undefined,
+    const mode = options.stub === true ? 'held' : options.stub
+    await page.addInitScript((stubMode: string) => {
+      const counts = { requests: 0 }
+      ;(window as unknown as { __wake: typeof counts }).__wake = counts
+
+      const makeSentinel = () => {
+        const sentinel = new EventTarget() as EventTarget & {
+          released: boolean
+          release: () => Promise<void>
+        }
+        sentinel.released = false
+        sentinel.release = async () => {
+          sentinel.released = true
+          sentinel.dispatchEvent(new Event('release'))
+        }
+        return sentinel
       }
+
       Object.defineProperty(navigator, 'wakeLock', {
         configurable: true,
         value: {
-          request: deny
-            ? async () => {
-                throw new DOMException('The battery saver refused the lock.', 'NotAllowedError')
-              }
-            : async () => sentinel,
+          request: async () => {
+            counts.requests += 1
+            if (stubMode === 'deny-lock') {
+              throw new DOMException('The battery saver refused the lock.', 'NotAllowedError')
+            }
+            const sentinel = makeSentinel()
+            ;(window as unknown as { __sentinel: unknown }).__sentinel = sentinel
+            return sentinel
+          },
         },
       })
       Object.defineProperty(navigator, 'getBattery', {
@@ -70,7 +86,7 @@ export async function openPanel(page: Page, options: PanelOptions = {}): Promise
           removeEventListener() {},
         }),
       })
-    }, options.stub === 'deny-lock')
+    }, mode)
   }
 
   if (options.clock === 'running') await page.clock.install({ time: FIXED_TIME })

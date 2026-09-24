@@ -125,6 +125,12 @@ export class Hearth {
     document.addEventListener('visibilitychange', this.onVisibility)
     document.addEventListener('pointerdown', this.onGesture)
     document.addEventListener('keydown', this.onGesture)
+    // A system suspend can take the lock without the page ever going hidden,
+    // and a page restored from the back/forward cache starts over. Both are
+    // worth asking again for.
+    window.addEventListener('pageshow', this.onResume)
+    window.addEventListener('focus', this.onResume)
+    document.addEventListener('resume', this.onResume)
     this.emit()
 
     await this.acquireWakeLock()
@@ -141,6 +147,9 @@ export class Hearth {
     document.removeEventListener('visibilitychange', this.onVisibility)
     document.removeEventListener('pointerdown', this.onGesture)
     document.removeEventListener('keydown', this.onGesture)
+    window.removeEventListener('pageshow', this.onResume)
+    window.removeEventListener('focus', this.onResume)
+    document.removeEventListener('resume', this.onResume)
     await this.releaseWakeLock()
     this.stopMedia('off')
     this.wakeLock = 'idle'
@@ -176,9 +185,24 @@ export class Hearth {
     this.emit()
   }
 
-  /** Browsers will not start unmuted media without one gesture. */
-  private onGesture = (): void => {
+  /**
+   * Something that is not a visibility change may have taken the lock: a system
+   * suspend, or a restore from the back/forward cache. Ask again, cheaply,
+   * because acquireWakeLock does nothing while a lock is already held.
+   */
+  private onResume = (): void => {
     if (!this.running) return
+    this.visible = document.visibilityState === 'visible'
+    if (this.visible) {
+      this.retries = 0
+      this.clearRetry()
+      void this.acquireWakeLock()
+    }
+    this.emit()
+  }
+
+  /** Browsers will not start unmuted media without one gesture. */
+  private onGesture = (): void => {    if (!this.running) return
     const audio = this.audio
     if (audio && audio.state === 'suspended') {
       void audio
