@@ -33,6 +33,7 @@ public/        generated assets, the service worker, the CNAME
 | `npm run test:e2e` | builds, then Playwright |
 | `npm run test:e2e:update` | builds, then rewrites the screenshot baselines |
 | `npm run smoke` | the deployed site, over the real domain, after a deploy |
+| `npm run verify:headed` | the wake lock and the mini window, in a real window |
 | `npm run assets` | icons, social card, manifest, CNAME (ImageMagick) |
 
 Always run `npm run check` and `npm test` before committing. `npm run test:e2e` rebuilds
@@ -87,14 +88,12 @@ update, so routine updates release themselves. A person labels a pull request
   power blocker treats audio as preventing app suspension, and the wake lock as
   preventing display sleep. That is why the panel reports the two holds separately
   instead of claiming the screen cannot sleep.
-- There is no test for the mini window's own wake lock. Playwright cannot assert a real
-  document picture-in-picture lock in headless Chromium; the tests cover the button's
-  presence and the fallback path.
 - **Headless Chromium denies the screen wake lock** (`NotAllowedError: Wake lock permission
-  request denied`), so the interface tests accept any honest hold state and `npm run smoke`
-  reports the state instead of asserting it. In a headed browser the lock is granted and the
-  title reads `screen lock held · hearth`. Check that by hand after touching `awake.ts`, or
-  with `node scripts/smoke.mts` against the live site in a headed run.
+  request denied`), so the interface tests accept any honest hold state and report it instead
+  of asserting it. `npm run verify:headed` is where the strong hold is asserted: in a real
+  window the title reads `screen lock held · hearth`, the mini window reads
+  `screen lock held · mini`, and it keeps that while the main tab is hidden. Run it by hand
+  after touching `awake.ts` or `mini.ts`.
 - The two full page screenshots are generated on the runner (`.github/workflows/baselines.yml`)
   because prose wraps differently between platforms. Everything else is compared on every
   platform.

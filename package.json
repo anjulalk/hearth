@@ -36,6 +36,7 @@
     "test:e2e": "npm run build && playwright test",
     "test:e2e:update": "npm run build && playwright test --update-snapshots",
     "smoke": "node scripts/smoke.mts",
+    "verify:headed": "node scripts/verify-headed.mts",
     "assets": "node scripts/make-assets.mts"
   },
   "dependencies": {

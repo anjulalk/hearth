@@ -96,6 +96,7 @@ recurring timer stops entirely while the tab is hidden.
 | `npm run test:e2e` | build, then the interface tests, Playwright |
 | `npm run test:e2e:update` | the same, rewriting the screenshot baselines |
 | `npm run smoke` | handshake with the deployed site, after a deploy |
+| `npm run verify:headed` | the two things a headless browser cannot check, in a real window |
 | `npm run assets` | the icons, the social card, the manifest, the CNAME (needs ImageMagick) |
 
 ## Tests
@@ -120,8 +121,14 @@ npm run test:e2e
 **Live check.** `npm run smoke` loads <https://hearth.anjula.dev/?start=1> in a real browser
 and asserts what only production can show: the domain answers, the stage is black, the media
 stream has both of its tracks and is playing, the tab title reports the hold, the service
-worker is registered, and a reload continues the watch instead of restarting it. It exits
+worker is activated, and a reload continues the watch instead of restarting it. It exits
 non-zero, so it works as a post-deploy gate.
+
+**Headed check.** Headless Chromium denies the screen wake lock, so two things are outside
+what the suite above can prove. `npm run verify:headed` opens a real window and checks them:
+that the browser grants the lock and the tab says `screen lock held`, and that the mini window
+opens, holds its own lock, and keeps holding it while the main tab is hidden. It exits
+non-zero too, so run it after touching `awake.ts` or `mini.ts`.
 
 ## Deployment
 
