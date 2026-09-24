@@ -1,0 +1,70 @@
+name: ci
+
+# The deploy workflow runs on main and owns the live site. This one answers the
+# question a pull request asks: does it still check, does it still build, and
+# does the interface still look like itself.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check
+        run: npm run check
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        env:
+          # Served from the root of the custom subdomain (see public/CNAME).
+          BASE_PATH: /
+        run: npm run build
+
+      # The interface tests run against the built site, on the same Chromium
+      # version as the container image, so the baselines in e2e/*-snapshots are
+      # compared on the platform they were written for.
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Interface tests
+        run: npm run test:e2e
+
+      - name: Keep the diff when a screenshot moved
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      # Pages serves one deployment and that one belongs to main, so a pull
+      # request gets the built site as a downloadable artifact instead.
+      - name: Attach the built site to the run
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: dist
+          retention-days: 7

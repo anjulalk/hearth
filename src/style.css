@@ -1,0 +1,785 @@
+@import 'tailwindcss';
+
+/* Design tokens: the shared anjula.dev system. Values mirror
+   https://anjula.dev/design/tokens.css and DESIGN.md, so this project and the
+   others stay one family. The screensaver has its own palette further down,
+   because none of those values ever sit on paper. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Source Serif 4', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-paper: #faf8f3;
+  --color-card: #ffffff;
+  --color-line: #dfdbd0;
+  --color-hair: #f0ede4;
+  --color-wash: #f4f2ec;
+
+  /* Text roles, the same four the blog uses: headings, body, secondary,
+     decorative. Nothing else is allowed to carry text. */
+  --color-ink: #44403a;
+  --color-mute: #5f5a51;
+  --color-soft: #767064;
+  --color-faint: #948e80;
+
+  --color-clay: #c1603c;
+  --color-clay-strong: #9e4a2d;
+  --color-clay-soft: #e7966e;
+  --color-moss: #78876a;
+  --color-positive: #157a58;
+  --color-negative: #b3323f;
+  --color-gold: #8a6309;
+
+  --radius-card: 0.875rem;
+  /* The one allowed shadow, for a raised app card. */
+  --shadow-card: 0 1px 2px rgb(28 27 23 / 0.04), 0 8px 24px -12px rgb(28 27 23 / 0.08);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-paper: #282622;
+  --color-card: #2f2d29;
+  --color-line: #5b564c;
+  --color-hair: #3a3833;
+  --color-wash: #33312c;
+
+  --color-ink: #f4f2ec;
+  --color-mute: #cdc8bb;
+  --color-soft: #948e80;
+  --color-faint: #767064;
+
+  --color-clay: #e7966e;
+  --color-clay-strong: #d97757;
+  --color-clay-soft: #c1603c;
+  --color-moss: #98a688;
+  --color-positive: #6cc4a1;
+  --color-negative: #e08d92;
+  --color-gold: #d3b45c;
+}
+
+:root {
+  /* Motion and layout tokens from the shared system. */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur: 240ms;
+  --container: 80rem;
+  --measure: 65ch;
+  --gutter: 1.5rem;
+
+  /* The signature page background: paper with two very soft glows, clay from
+     the top-left and moss from the top-right. */
+  --wash-glow-clay: color-mix(in srgb, var(--color-clay) 5%, transparent);
+  --wash-glow-moss: color-mix(in srgb, var(--color-moss) 4%, transparent);
+  --wash-ambient:
+    radial-gradient(900px 480px at 8% -10%, var(--wash-glow-clay), transparent 62%),
+    radial-gradient(760px 420px at 92% -4%, var(--wash-glow-moss), transparent 58%);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --gutter: 3.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 6rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 8rem;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-paper);
+    color-scheme: light;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-mute);
+    background-color: var(--color-paper);
+    background-image: var(--wash-ambient);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100dvh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    letter-spacing: -0.011em;
+  }
+
+  /* Compared numbers line up column to column. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: rgb(193 96 60 / 0.18);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-clay);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d8d3c6;
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #c2bcab;
+    background-clip: content-box;
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: #4a463f;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #5b564c;
+  }
+}
+
+/* Small uppercase metadata. Serif reads poorly at this size. */
+@utility label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+@utility ui {
+  font-family: var(--font-sans);
+}
+
+@utility card {
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-line);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility rise {
+  animation: rise 0.45s var(--ease-reveal) both;
+}
+
+.shell {
+  margin-inline: auto;
+  max-width: var(--container);
+  padding-inline: var(--gutter);
+}
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--color-line);
+    background: var(--color-card);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+
+  .btn:hover:not(:disabled) {
+    border-color: var(--color-faint);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    border-color: transparent;
+    background: var(--color-clay);
+    color: #fff;
+    font-size: 1.0625rem;
+    padding: 0.9rem 1.5rem;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-clay-strong);
+  }
+
+  .btn-quiet {
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-mute);
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    background: var(--color-hair);
+    color: var(--color-ink);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-hair);
+    color: var(--color-mute);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  .chip[data-state='on'] {
+    border-color: color-mix(in srgb, var(--color-positive) 40%, transparent);
+    background: color-mix(in srgb, var(--color-positive) 10%, transparent);
+    color: var(--color-positive);
+  }
+
+  .chip[data-state='warn'] {
+    border-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+    background: color-mix(in srgb, var(--color-gold) 12%, transparent);
+    color: var(--color-gold);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+  }
+
+  .toggle {
+    appearance: none;
+    flex: none;
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-wash);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+
+  .toggle:checked {
+    border-color: transparent;
+    background: var(--color-clay);
+  }
+
+  .toggle:checked::after {
+    transform: translateX(1rem);
+  }
+
+  .field-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--color-hair);
+  }
+
+  .field-row:first-child {
+    border-top: 0;
+  }
+}
+
+/* The screensaver. True black, a handful of lit pixels, and animations that only
+   touch transform and opacity so the compositor does the work. Every value here
+   stays on black, so this palette is separate from the paper system. */
+:root {
+  --ss-ink: #ece6db;
+  --ss-dim: #837c70;
+  --ss-faint: #4c4841;
+  --ss-ember: #e7966e;
+  --ss-ember-core: #f0b48d;
+  --ss-glow: rgb(231 150 110 / 0.15);
+  --ss-hair: rgb(255 255 255 / 0.08);
+}
+
+/* A warm palette for the small hours. Blue light is the part worth dropping. */
+.ss-warm {
+  --ss-ink: #e2c6a8;
+  --ss-dim: #9a8168;
+  --ss-faint: #584a3d;
+  --ss-ember: #dd8354;
+  --ss-ember-core: #eaa06f;
+  --ss-glow: rgb(221 131 84 / 0.14);
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  background: #000;
+  color: var(--ss-ink);
+  user-select: none;
+  cursor: none;
+  touch-action: none;
+  animation: fade 600ms var(--ease) both;
+}
+
+.stage-shift {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(var(--sx, 0), var(--sy, 0), 0);
+  transition: transform 4s var(--ease);
+}
+
+/* The dim tiers are the screensaver's own brightness control. A black panel
+   makes its own light, so this is where most of the saving happens. */
+.stage-content {
+  position: absolute;
+  inset: 0;
+  transition: opacity 1200ms var(--ease);
+}
+
+.dim-0 {
+  opacity: 1;
+}
+.dim-1 {
+  opacity: 0.55;
+}
+.dim-2 {
+  opacity: 0.3;
+}
+.dim-3 {
+  opacity: 0.13;
+}
+
+.ss-scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.6rem, 1.6vmin, 1.4rem);
+  text-align: center;
+  padding: 6vmin;
+}
+
+.ss-scene.is-corner {
+  align-items: flex-start;
+  justify-content: flex-end;
+  text-align: left;
+}
+
+.ss-label {
+  font-family: var(--font-sans);
+  font-size: clamp(0.6rem, 1.15vmin, 0.8rem);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ss-dim);
+}
+
+.ss-time {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(2.5rem, 22vmin, 10rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--ss-ink);
+}
+
+.ss-time-small {
+  font-size: clamp(1.5rem, 9vmin, 4rem);
+}
+
+.ss-seconds {
+  margin-left: 0.14em;
+  font-size: 0.42em;
+  color: var(--ss-dim);
+  letter-spacing: 0;
+}
+
+.ss-colon {
+  animation: blink 2s steps(1, end) infinite;
+}
+
+.ss-date {
+  font-family: var(--font-serif);
+  font-size: clamp(0.85rem, 2.1vmin, 1.35rem);
+  color: var(--ss-dim);
+  letter-spacing: 0.01em;
+}
+
+.ss-meta {
+  font-family: var(--font-mono);
+  font-size: clamp(0.6rem, 1.3vmin, 0.85rem);
+  letter-spacing: 0.05em;
+  color: var(--ss-faint);
+}
+
+.ss-ember {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(22vmin, 15rem);
+  aspect-ratio: 1;
+}
+
+.ss-ember-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ss-glow) 0%, transparent 68%);
+  animation: breathe 9s var(--ease) infinite alternate;
+}
+
+.ss-ember-core {
+  width: clamp(7px, 1.3vmin, 13px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ss-ember-core);
+  box-shadow: 0 0 22px 5px var(--ss-glow);
+  animation: breathe 9s var(--ease) infinite alternate;
+}
+
+.ss-field {
+  position: absolute;
+  inset: -8%;
+}
+
+.ss-layer {
+  position: absolute;
+  inset: 0;
+  animation: drift var(--drift) linear infinite alternate;
+}
+
+.ss-star {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--ss-ink);
+  animation: twinkle var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+
+.ss-agents {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.7rem, 2vmin, 1.5rem);
+  margin-top: clamp(0.5rem, 1.5vmin, 1.2rem);
+}
+
+.ss-agent {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.ss-agent-dot {
+  width: clamp(6px, 1.05vmin, 10px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--ss-ember);
+  box-shadow: 0 0 14px var(--ss-glow);
+  animation: breathe var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+
+.ss-agent-name {
+  font-family: var(--font-mono);
+  font-size: clamp(0.65rem, 1.5vmin, 0.9rem);
+  letter-spacing: 0.06em;
+  color: var(--ss-dim);
+}
+
+.ss-agent-task {
+  font-family: var(--font-mono);
+  font-size: clamp(0.65rem, 1.5vmin, 0.9rem);
+  letter-spacing: 0.04em;
+  color: var(--ss-faint);
+}
+
+/* The controls only appear when the pointer moves, and leave on their own. */
+.stage-bar {
+  position: fixed;
+  top: clamp(0.75rem, 2vh, 1.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  border: 1px solid var(--ss-hair);
+  background: rgb(10 10 10 / 0.9);
+  cursor: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms var(--ease);
+}
+
+.stage-bar.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.stage-bar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ss-dim);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.stage-bar button:hover {
+  color: var(--ss-ink);
+  background: rgb(255 255 255 / 0.07);
+}
+
+.stage-bar .stage-bar-strong {
+  color: var(--ss-ink);
+}
+
+.stage-hint {
+  position: fixed;
+  bottom: clamp(1rem, 3vh, 2.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-sans);
+  font-size: clamp(0.7rem, 1.4vmin, 0.85rem);
+  color: var(--ss-faint);
+  text-align: center;
+  max-width: min(90vw, 34rem);
+  line-height: 1.5;
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.5;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.08;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -3.5%, 0);
+  }
+}
+
+@keyframes blink {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0.25;
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* The mini window. It is its own document, so it carries the same screens with
+   a status strip that says which hold is doing the work while the user is
+   looking at another window. */
+.mini-stage {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000;
+  color: var(--ss-ink);
+  user-select: none;
+}
+
+.mini-stage .ss-scene {
+  padding-bottom: 14vmin;
+}
+
+.mini-status {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border-top: 1px solid var(--ss-hair);
+  font-family: var(--font-sans);
+  font-size: clamp(0.58rem, 3vmin, 0.78rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ss-faint);
+}
+
+.mini-status[data-level='screen'] {
+  color: var(--ss-ember);
+}
+
+.mini-status[data-level='media'],
+.mini-status[data-level='weak'] {
+  color: #d3b45c;
+}
+
+.mini-status .dot {
+  background: currentColor;
+}
+
+/* The stage keeps the ember honest: it glows while a screen lock is held and
+   sits at a low burn when only the media stream is carrying the watch. */
+.ss-ember.is-dim {
+  filter: brightness(0.65);
+}
+
+.ss-mini-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--ss-ember);
+  box-shadow: 0 0 10px var(--ss-glow);
+  vertical-align: middle;
+}
+
+/* The status dot in the panel, the one glanceable thing on the paper side. */
+.status-dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 0.4rem;
+  border-radius: 50%;
+}
+
+.status-dot[data-tone='on'] {
+  background: var(--color-positive);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-positive) 15%, transparent);
+}
+
+.status-dot[data-tone='warn'] {
+  background: var(--color-gold);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-gold) 15%, transparent);
+}
+
+.status-dot[data-tone='off'] {
+  background: var(--color-faint);
+}
+
+.status-dot.is-live {
+  animation: dot-breathe 3.6s var(--ease) infinite;
+}
+
+@keyframes dot-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

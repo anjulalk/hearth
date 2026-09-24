@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Keep your screen on while AI agents run | hearth</title>
+    <meta
+      name="description"
+      content="hearth holds a screen wake lock and an inaudible media loop so your display stays on while AI agents run in another tab, and shows a black, low-power screensaver in the meantime."
+    />
+    <link rel="canonical" href="https://hearth.anjula.dev/" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />
+    <meta name="author" content="Anjula Karunarathne" />
+    <meta name="theme-color" content="#faf8f3" />
+    <!-- Set the appearance before first paint so the dark theme never flashes. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('hearth.appearance')
+          var dark =
+            stored === 'dark' ||
+            (stored !== 'light' &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="hearth" />
+    <meta property="og:locale" content="en_LK" />
+    <meta property="og:url" content="https://hearth.anjula.dev/" />
+    <meta property="og:title" content="Keep your screen on while AI agents run" />
+    <meta
+      property="og:description"
+      content="A screen wake lock, an inaudible media loop and a black screensaver, so a long job never wakes up to a sleeping display."
+    />
+    <meta property="og:image" content="https://hearth.anjula.dev/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="hearth, a keep-awake screensaver for long-running jobs" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Keep your screen on while AI agents run | hearth" />
+    <meta
+      name="twitter:description"
+      content="A screen wake lock, an inaudible media loop and a black screensaver, so a long job never wakes up to a sleeping display."
+    />
+    <meta name="twitter:image" content="https://hearth.anjula.dev/og.png" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://hearth.anjula.dev/#site",
+            "url": "https://hearth.anjula.dev/",
+            "name": "hearth",
+            "description": "A web app that keeps the screen on while long-running jobs finish.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://hearth.anjula.dev/#author" }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://hearth.anjula.dev/#app",
+            "name": "hearth",
+            "url": "https://hearth.anjula.dev/",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "Web",
+            "isAccessibleForFree": true,
+            "description": "Holds a screen wake lock and plays an inaudible media loop so the display stays on while agents run in the background, with a black, low-power screensaver.",
+            "author": { "@id": "https://hearth.anjula.dev/#author" },
+            "about": { "@type": "Thing", "name": "Screen wake lock" },
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://hearth.anjula.dev/#author",
+            "name": "Anjula Karunarathne",
+            "url": "https://anjula.dev"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>
+      <h1>hearth: keep the screen on while agents run</h1>
+      <p>
+        hearth asks the browser to hold a screen wake lock and to keep a quiet media stream alive,
+        so a long-running job in another tab never wakes up to a display that has gone to sleep. It
+        also shows a black screensaver with a clock, an ember, a star field or a tally of the agents
+        at work. The holds and the screensaver both need JavaScript; enable it to use hearth.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
