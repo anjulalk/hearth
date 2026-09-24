@@ -105,6 +105,12 @@ export function holdStatus(input: HoldInput): HoldStatus {
     title: input.wakeLock === 'denied' ? 'Screen lock refused' : 'Weak hold',
     detail: `${reason}${fix}`,
     short: 'weak hold',
-    note: input.visible ? 'weak hold · click once' : 'weak hold · may be frozen',
+    // A click can only help while the page is on screen. Away from it, the honest
+  // warning is that the browser may freeze the tab.
+  note: !input.visible
+    ? 'weak hold · may be frozen'
+    : input.needsGesture
+      ? 'weak hold · click once'
+      : 'weak hold',
   }
 }

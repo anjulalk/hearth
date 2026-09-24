@@ -1,15 +1,37 @@
 /* hearth's service worker. The app is a utility that people keep open for hours,
    so the shell is cached and opens when the network is down. Navigations are
    network first, because a new deploy should win over the cache. Hashed assets
-   are cache first, because the name changes whenever the bytes do. */
-const CACHE = 'hearth-shell-v1'
+   and the fonts are cache first, because their names change when the bytes do. */
+const CACHE = 'hearth-shell-v3'
 const SHELL = self.registration.scope
+/* The three families, latin subset. Small enough to keep, so the app opens
+   offline with its own type rather than a fallback. */
+const FONTS = [
+  'fonts/inter-100_900-latin.woff2',
+  'fonts/jetbrains-mono-100_800-latin.woff2',
+  'fonts/source-serif-4-200_900-latin.woff2',
+]
+/* A new build renames its assets, so the cache would grow forever without a
+   ceiling. Forty entries is several builds' worth of a small app. */
+const MAX_ENTRIES = 40
+
+async function put(request, response) {
+  const cache = await caches.open(CACHE)
+  await cache.put(request, response)
+  const keys = await cache.keys()
+  if (keys.length > MAX_ENTRIES) {
+    for (const key of keys.slice(0, keys.length - MAX_ENTRIES)) await cache.delete(key)
+  }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll([SHELL]))
+      .then((cache) =>
+        // One missing file must not stop the worker from installing.
+        Promise.all([SHELL, ...FONTS].map((url) => cache.add(url).catch(() => undefined))),
+      )
       .then(() => self.skipWaiting()),
   )
 })
@@ -37,8 +59,7 @@ self.addEventListener('fetch', (event) => {
       (async () => {
         try {
           const response = await fetch(request)
-          const copy = response.clone()
-          void caches.open(CACHE).then((cache) => cache.put(SHELL, copy))
+          void put(SHELL, response.clone())
           return response
         } catch {
           const cached = (await caches.match(SHELL)) ?? (await caches.match(request))
@@ -49,16 +70,13 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  if (url.pathname.includes('/assets/')) {
+  if (url.pathname.includes('/assets/') || url.pathname.includes('/fonts/')) {
     event.respondWith(
       (async () => {
         const cached = await caches.match(request)
         if (cached) return cached
         const response = await fetch(request)
-        if (response.ok) {
-          const copy = response.clone()
-          void caches.open(CACHE).then((cache) => cache.put(request, copy))
-        }
+        if (response.ok) void put(request, response.clone())
         return response
       })(),
     )

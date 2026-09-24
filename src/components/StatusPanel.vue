@@ -106,6 +106,13 @@ function setMiniWindow(event: Event): void {
       </div>
     </dl>
 
+    <p
+      v-else-if="dayMs > 0"
+      class="mt-4 border-t border-hair pt-4 text-[0.875rem] leading-snug text-soft"
+    >
+      Kept the screen on for <span class="num text-ink">{{ elapsed(dayMs) }}</span> today.
+    </p>
+
     <div class="mt-4 flex flex-wrap items-center gap-2">
       <span class="chip" :data-state="lockState"><span class="dot" />wake lock {{ lockLabel }}</span>
       <span class="chip" :data-state="mediaState"><span class="dot" />media {{ mediaLabel }}</span>

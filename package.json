@@ -9,6 +9,23 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anjulalk/hearth.git"
+  },
+  "homepage": "https://hearth.anjula.dev",
+  "bugs": {
+    "url": "https://github.com/anjulalk/hearth/issues"
+  },
+  "keywords": [
+    "screen-wake-lock",
+    "keep-awake",
+    "screensaver",
+    "oled",
+    "vue",
+    "vite",
+    "typescript"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",

@@ -49,7 +49,8 @@ first on purpose: an interface test against a stale `dist/` is worse than no tes
 - **`holds.ts` is the only place that decides the story.** The panel, the tab title, the
   favicon, the stage and the mini window must never disagree about which hold is active.
   Change the copy there, not in five components.
-- **No analytics, no network after load.** The only outside request is the web font.
+- **No analytics, no network after load.** The fonts are served from this origin, and the service
+  worker keeps the shell. There is nothing left to fetch.
 - **A bookmark is safe to press twice.** `?start=1` continues an existing session through
   `hearth.session`; stopping clears it. Do not break either half of that.
 - **Do not claim more than a page can do.** A page cannot change a power plan, and the

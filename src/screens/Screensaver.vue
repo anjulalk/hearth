@@ -6,6 +6,7 @@ import EmberScreen from './EmberScreen.vue'
 import MinimalScreen from './MinimalScreen.vue'
 import StarsScreen from './StarsScreen.vue'
 import { modeDef } from '@/lib/modes'
+import { percent } from '@/lib/format'
 import { useStore } from '@/lib/store'
 
 const SCREENS = {
@@ -17,8 +18,24 @@ const SCREENS = {
 } as const
 
 const store = useStore()
-const { prefs, mode, running, hold, dimTier, shift, now, elapsedMs, controlsVisible, fullscreen } =
-  store
+const {
+  prefs,
+  mode,
+  running,
+  hold,
+  dimTier,
+  shift,
+  now,
+  elapsedMs,
+  controlsVisible,
+  fullscreen,
+  battery,
+} = store
+
+/** A watch held on battery, overnight, is the case worth warning about. */
+const batteryLow = computed(
+  () => battery.value.supported && !battery.value.charging && battery.value.level < 0.25,
+)
 
 const screen = computed(() => SCREENS[mode.value])
 const modeName = computed(() => modeDef(mode.value).name)
@@ -74,5 +91,12 @@ const screenProps = computed(() => ({
     <p v-else-if="store.awakeState.needsGesture" class="stage-hint">
       Click anywhere once to let the quiet audio track start, so the hold survives the background.
     </p>
+
+    <div v-if="running && (hold.level !== 'screen' || batteryLow)" class="stage-marks">
+      <p v-if="hold.level !== 'screen'" :data-level="hold.level">
+        <span class="dot" />{{ hold.short }}
+      </p>
+      <p v-if="batteryLow" data-level="media"><span class="dot" />battery {{ percent(battery.level) }}</p>
+    </div>
   </div>
 </template>

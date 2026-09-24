@@ -302,6 +302,8 @@ export function createStore() {
     warm: true,
     hour24: true,
     seconds: false,
+    agents: 3,
+    onCycle: () => cycleMode(),
   })
 
   // --- wiring ------------------------------------------------------------
@@ -362,6 +364,7 @@ export function createStore() {
     miniProps.warm = prefs.warm
     miniProps.hour24 = prefs.hour24
     miniProps.seconds = prefs.seconds
+    miniProps.agents = prefs.agents
   })
 
   watchEffect(applyAppearance)

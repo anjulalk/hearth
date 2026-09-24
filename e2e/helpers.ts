@@ -23,9 +23,10 @@ export interface PanelOptions {
   prefs?: Partial<typeof PREFERENCES>
   /**
    * A wake lock and a battery that always answer the same way. Screenshots need
-   * that; the behaviour tests use the real browser instead.
+   * that; the behaviour tests use the real browser instead. `deny-lock` is the
+   * case worth testing by hand: a browser that refuses the strong hold.
    */
-  stub?: boolean
+  stub?: boolean | 'deny-lock'
   /**
    * `fixed` freezes the clock, which makes screenshots comparable. `running`
    * installs a clock the test can push forward, for the timers.
@@ -43,7 +44,7 @@ export async function openPanel(page: Page, options: PanelOptions = {}): Promise
   }, prefs)
 
   if (options.stub) {
-    await page.addInitScript(() => {
+    await page.addInitScript((deny: boolean) => {
       const sentinel = {
         released: false,
         addEventListener() {},
@@ -52,7 +53,13 @@ export async function openPanel(page: Page, options: PanelOptions = {}): Promise
       }
       Object.defineProperty(navigator, 'wakeLock', {
         configurable: true,
-        value: { request: async () => sentinel },
+        value: {
+          request: deny
+            ? async () => {
+                throw new DOMException('The battery saver refused the lock.', 'NotAllowedError')
+              }
+            : async () => sentinel,
+        },
       })
       Object.defineProperty(navigator, 'getBattery', {
         configurable: true,
@@ -63,7 +70,7 @@ export async function openPanel(page: Page, options: PanelOptions = {}): Promise
           removeEventListener() {},
         }),
       })
-    })
+    }, options.stub === 'deny-lock')
   }
 
   if (options.clock === 'running') await page.clock.install({ time: FIXED_TIME })

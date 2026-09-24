@@ -80,6 +80,10 @@ test.describe('the watch', () => {
     await expect(page.locator('.stage')).toHaveCount(0)
     await expect(page.getByText('Not holding the screen on')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Start keeping the screen on' })).toBeVisible()
+    // Stopping really stops: the media element and its tracks go with it.
+    expect(
+      await page.evaluate(() => document.querySelector('video[aria-hidden="true"]') === null),
+    ).toBe(true)
   })
 
   test('starts from a link, and a reload does not restart the clock', async ({ page }) => {
@@ -134,6 +138,30 @@ test.describe('the watch', () => {
 
     await page.mouse.click(200, 800)
     await expect(page.locator('.stage')).toHaveCount(0)
+  })
+
+  test('marks the stage when the strong hold is not the one holding', async ({ page }) => {
+    await openPanel(page, { stub: 'deny-lock' })
+    await startWatch(page)
+
+    // The one thing a person has to be able to see from across the room: the
+    // screen lock is not held, and the media stream is doing the work.
+    await expect(page.locator('.stage-marks')).toContainText('media hold only')
+    await expect(page.locator('.stage-marks [data-level="media"]')).toHaveCSS(
+      'color',
+      'rgb(211, 180, 92)',
+    )
+  })
+
+  test('says a weak hold out loud, and stops asking once it cannot help', async ({ page }) => {
+    await openPanel(page, { stub: 'deny-lock', prefs: { media: false } })
+    await startWatch(page)
+
+    await expect(page.locator('.stage-marks')).toContainText('weak hold')
+    // With the media hold switched off, a click would not fix it, so the stage
+    // does not ask for one.
+    await expect(page.locator('.ss-meta').last()).toContainText('weak hold')
+    await expect(page.getByText(/let the quiet audio track start/)).toHaveCount(0)
   })
 
   test('offers the mini window exactly where the browser has it', async ({ page }) => {

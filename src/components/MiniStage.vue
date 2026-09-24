@@ -18,6 +18,7 @@ const props = defineProps<{
   warm: boolean
   hour24: boolean
   seconds: boolean
+  agents: number
   onCycle: () => void
 }>()
 
@@ -52,7 +53,7 @@ const screenProps = computed(() => ({
   elapsedMs: elapsedMs.value,
   hour24: props.hour24,
   seconds: props.seconds,
-  agents: 0,
+  agents: props.agents,
   holdLevel: props.running ? props.holdLevel : ('off' as const),
   note: null,
 }))

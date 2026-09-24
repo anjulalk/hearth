@@ -127,9 +127,10 @@ Cloudflare points `hearth.anjula.dev` at GitHub, the way the other subdomains do
 
 ## Privacy
 
-Nothing leaves the page. There is no analytics and no account. After the files load, the
-only outside request is the web font. The mode, the settings and the day's total live in
-your own local storage, and nowhere else.
+Nothing leaves the page. There is no analytics and no account, and the type is served from this
+origin rather than a font host, so after the files load there are no outside requests at all. The
+mode, the settings and the day's total live in your own local storage, and nowhere else. The
+service worker keeps the shell and the fonts, so hearth opens with no network either.
 
 ## License
 
