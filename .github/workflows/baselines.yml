@@ -33,11 +33,15 @@ jobs:
       - name: Install the browser
         run: npx playwright install --with-deps chromium
 
-      - name: Rewrite every baseline
-        run: npx playwright test --update-snapshots
+      # Only the two panel shots. The stage baselines compare on every platform,
+      # and rewriting them here would replace them with a Linux rendering.
+      - name: Rewrite the panel baselines
+        run: npx playwright test --update-snapshots --grep "looks like itself"
 
       - uses: actions/upload-artifact@v7
         with:
           name: baselines
-          path: e2e/**/*-snapshots/*.png
+          path: |
+            e2e/panel.spec.ts-snapshots/*.png
+            e2e/mobile.spec.ts-snapshots/mobile-panel.png
           retention-days: 7
