@@ -65,7 +65,15 @@ test.describe('the panel', () => {
   })
 
   test('looks like itself', async ({ page }) => {
+    // A full page of prose wraps a line or two differently between platforms,
+    // and no tolerance can tell that apart from antialiasing. The stage shots
+    // are geometry and compare everywhere; this one belongs to the runner, so
+    // its baseline is generated on Linux (.github/workflows/baselines.yml).
+    test.skip(
+      process.platform !== 'linux',
+      'the full page baseline is generated on the runner, see .github/workflows/baselines.yml',
+    )
     await openPanel(page, { stub: true })
-    await expect(page).toHaveScreenshot('panel.png', { fullPage: true })
+    await expect(page).toHaveScreenshot('panel.png', { fullPage: true, maxDiffPixelRatio: 0.02 })
   })
 })

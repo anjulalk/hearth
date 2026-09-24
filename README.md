@@ -95,6 +95,7 @@ recurring timer stops entirely while the tab is hidden.
 | `npm test` | unit tests, Vitest |
 | `npm run test:e2e` | build, then the interface tests, Playwright |
 | `npm run test:e2e:update` | the same, rewriting the screenshot baselines |
+| `npm run smoke` | handshake with the deployed site, after a deploy |
 | `npm run assets` | the icons, the social card, the manifest, the CNAME (needs ImageMagick) |
 
 ## Tests
@@ -106,14 +107,21 @@ one function that decides which hold the UI reports.
 **Interface tests** run the built site in Chromium at a fixed minute, with a fixed wake
 lock and battery. They check behaviour (the media stream really has a video and an audio
 track, the keyboard drives the stage, dimming follows the clock, the pixel shift moves,
-stopping clears the session) and they compare screenshots of the panel and of every
-screensaver against committed baselines, with a tolerance for the few pixels where font
-rasterisation differs between platforms.
+stopping clears the session) and they compare screenshots: the stage and every screensaver
+against baselines, on every platform. The two full page panel screenshots are generated on
+the runner, because a long page of prose wraps a line or two differently on Windows than on
+Linux, and no pixel tolerance can tell that apart from antialiasing.
 
 ```bash
 npx playwright install chromium   # once
 npm run test:e2e
 ```
+
+**Live check.** `npm run smoke` loads <https://hearth.anjula.dev/?start=1> in a real browser
+and asserts what only production can show: the domain answers, the stage is black, the media
+stream has both of its tracks and is playing, the tab title reports the hold, the service
+worker is registered, and a reload continues the watch instead of restarting it. It exits
+non-zero, so it works as a post-deploy gate.
 
 ## Deployment
 

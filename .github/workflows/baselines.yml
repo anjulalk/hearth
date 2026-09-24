@@ -1,0 +1,43 @@
+name: baselines
+
+# The two full page screenshots (the panel and the mobile panel) are pages of
+# prose, and prose wraps a line or two differently on Windows than it does on
+# Linux. No pixel tolerance can tell that apart from antialiasing, so those two
+# baselines belong to the runner: run this by hand after a layout change,
+# download the artifact, and commit it. The stage screenshots are geometry and
+# are compared on every platform by ci.yml.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baselines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          BASE_PATH: /
+        run: npm run build
+
+      - name: Install the browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Rewrite every baseline
+        run: npx playwright test --update-snapshots
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: baselines
+          path: e2e/**/*-snapshots/*.png
+          retention-days: 7

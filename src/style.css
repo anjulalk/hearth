@@ -382,8 +382,10 @@
   user-select: none;
   cursor: none;
   touch-action: none;
-  animation: fade 600ms var(--ease) both;
 }
+
+/* The stage arrives at full black, with no fade. A fade would show the lit page
+   underneath for a moment, which is exactly what an OLED panel must not do. */
 
 .stage-shift {
   position: absolute;
@@ -664,15 +666,6 @@
   49%,
   100% {
     opacity: 0.25;
-  }
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 

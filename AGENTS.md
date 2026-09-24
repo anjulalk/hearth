@@ -32,6 +32,7 @@ public/        generated assets, the service worker, the CNAME
 | `npm test` | Vitest |
 | `npm run test:e2e` | builds, then Playwright |
 | `npm run test:e2e:update` | builds, then rewrites the screenshot baselines |
+| `npm run smoke` | the deployed site, over the real domain, after a deploy |
 | `npm run assets` | icons, social card, manifest, CNAME (ImageMagick) |
 
 Always run `npm run check` and `npm test` before committing. `npm run test:e2e` rebuilds
@@ -87,5 +88,11 @@ update, so routine updates release themselves. A person labels a pull request
 - There is no test for the mini window's own wake lock. Playwright cannot assert a real
   document picture-in-picture lock in headless Chromium; the tests cover the button's
   presence and the fallback path.
-- The screenshot baselines are compared across platforms with a small tolerance. If a
-  baseline ever needs a tighter threshold, generate it on Linux first.
+- **Headless Chromium denies the screen wake lock** (`NotAllowedError: Wake lock permission
+  request denied`), so the interface tests accept any honest hold state and `npm run smoke`
+  reports the state instead of asserting it. In a headed browser the lock is granted and the
+  title reads `screen lock held · hearth`. Check that by hand after touching `awake.ts`, or
+  with `node scripts/smoke.mts` against the live site in a headed run.
+- The two full page screenshots are generated on the runner (`.github/workflows/baselines.yml`)
+  because prose wraps differently between platforms. Everything else is compared on every
+  platform.

@@ -13,6 +13,14 @@ test('the panel fits a phone without sideways scrolling', async ({ page }) => {
   // One column, and every control reachable.
   await expect(page.getByRole('button', { name: 'Start keeping the screen on' })).toBeVisible()
   await expect(page.locator('.mode-tile')).toHaveCount(5)
+})
+
+test('the mobile panel looks like itself', async ({ page }) => {
+  // The desktop panel baseline has the same rule: a long page of prose wraps
+  // differently between platforms, so the baseline belongs to the runner
+  // (.github/workflows/baselines.yml).
+  test.skip(process.platform !== 'linux', 'the full page baseline is Linux generated')
+  await openPanel(page, { stub: true })
   await expect(page).toHaveScreenshot('mobile-panel.png', { fullPage: true })
 })
 
