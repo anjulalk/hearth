@@ -1,0 +1,9 @@
+# One checkout, one runner, one line ending. Without this a Windows working copy
+# writes CRLF and every clone sees a diff that is not a change.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+
+# The screenshot baselines are bytes, and they are compared as bytes.
+*.png -text
