@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { openPanel } from './helpers'
+import { openPanel, startWatch } from './helpers'
 
 test.describe('the panel', () => {
   test('says what it is, and what it is not holding yet', async ({ page }) => {
@@ -9,10 +9,11 @@ test.describe('the panel', () => {
     await expect(page.locator('.intro-lede')).toContainText('keeps a screen awake while agents work')
     await expect(page.locator('.intro-lede')).toContainText('true black')
     await expect(page.locator('.intro-support')).toContainText('OLED')
-    await expect(page.locator('.header-status')).toHaveText(/idle/)
+    await expect(page.locator('.header-status')).toHaveText('Idle')
     await expect(page.getByText('Not holding the screen on')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Start keeping the screen on' })).toBeVisible()
-    await expect(page.getByText('Idle', { exact: true })).toBeVisible()
+    // The card's own label, not the header's status line.
+    await expect(page.locator('section.card').first().getByText('Idle', { exact: true })).toBeVisible()
   })
 
   test('wears the shared shell from the design system', async ({ page }) => {
@@ -29,13 +30,13 @@ test.describe('the panel', () => {
     await expect(wordmark).toHaveCSS('color', 'rgb(68, 64, 58)')
     await expect(page.locator('header')).toHaveCSS('padding-bottom', '40px')
 
-    const wordmarkText = await page.locator('h1 span').boundingBox()
-    const mark = await page.locator('h1 svg').boundingBox()
-    expect(mark?.x ?? 0).toBeGreaterThanOrEqual((wordmarkText?.x ?? 0) + (wordmarkText?.width ?? 0))
+    // The wordmark is the whole header brand: there is no mark beside it.
+    await expect(wordmark).toHaveText('hearth')
+    await expect(page.locator('header svg')).toHaveCount(0)
 
     // The status is header meta: Inter 0.875rem, ink-500, and on the right.
     const status = page.locator('.header-status')
-    await expect(status).toHaveText('idle')
+    await expect(status).toHaveText('Idle')
     await expect(status).toHaveCSS('font-family', /Inter/)
     await expect(status).toHaveCSS('font-size', '14px')
     await expect(status).toHaveCSS('color', 'rgb(118, 112, 100)')
@@ -49,8 +50,8 @@ test.describe('the panel', () => {
     const support = await page.locator('.intro-support').boundingBox()
     expect(support?.width ?? 0).toBeLessThanOrEqual(672)
 
-    // Footer: chrome, small, ink-500, no rule dividing it from the page, and the
-    // source links live down here now.
+    // Footer: chrome, small, ink-500, no rule dividing it from the page, and no
+    // links: an attribution and one line of fact.
     const footer = page.locator('footer')
     await expect(footer).toHaveCSS('font-family', /Inter/)
     await expect(footer).toHaveCSS('font-size', '14px')
@@ -58,12 +59,9 @@ test.describe('the panel', () => {
     await expect(footer).toHaveCSS('border-top-width', '0px')
     await expect(page.locator('footer p.text-xs')).toHaveCSS('font-size', '12px')
     await expect(footer).toContainText('Built by')
+    await expect(footer).toContainText('Nothing leaves the page')
     await expect(footer).not.toContainText('MIT')
-    await expect(footer.getByRole('link', { name: 'Source' })).toHaveAttribute('href', /github\.com/)
-    await expect(footer.getByRole('link', { name: 'Design system' })).toHaveAttribute(
-      'href',
-      /tokens\.css/,
-    )
+    await expect(footer.locator('a')).toHaveCount(1)
   })
 
   test('follows the system until the footer control says otherwise', async ({ page }) => {
@@ -95,10 +93,13 @@ test.describe('the panel', () => {
     await page.getByLabel(/Shift the pixels/).check()
     await page.getByLabel(/Show seconds/).check()
     await page.getByLabel(/Warm palette/).uncheck()
-    await page.getByLabel(/Fullscreen on start/).check()
     await page.getByLabel(/Media hold/).uncheck()
-    await page.getByLabel(/Mini window/).check()
     await page.getByRole('button', { name: 'One more agent' }).click()
+    // The mode and its fullscreen switch are one choice, in the status card.
+    const group = page.getByRole('group', { name: 'What to show while it runs' })
+    await group.getByRole('button', { name: 'Screensaver' }).click()
+    await page.getByRole('button', { name: 'Fullscreen' }).click()
+    await group.getByRole('button', { name: 'Panel' }).click()
     await page.locator('footer').getByRole('button', { name: 'appearance switcher' }).click()
 
     await page.reload()
@@ -109,13 +110,68 @@ test.describe('the panel', () => {
     await expect(page.getByLabel(/Shift the pixels/)).toBeChecked()
     await expect(page.getByLabel(/Show seconds/)).toBeChecked()
     await expect(page.getByLabel(/Warm palette/)).not.toBeChecked()
-    await expect(page.getByLabel(/Fullscreen on start/)).toBeChecked()
     await expect(page.getByLabel(/Media hold/)).not.toBeChecked()
-    await expect(page.getByLabel(/Mini window/)).toBeChecked()
     await expect(page.locator('.field-row').filter({ hasText: 'Agents on the stage' })).toContainText(
       '4',
     )
+    await expect(
+      page.getByRole('group', { name: 'What to show while it runs' }).getByRole('button', { name: 'Panel' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByRole('button', { name: 'Fullscreen' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await expect(page.locator('html')).toHaveClass(/dark/)
+  })
+
+  test('lets the view be chosen before the watch starts', async ({ page }) => {
+    await openPanel(page, { stub: true })
+
+    // On the first screen, without starting anything: where should it show.
+    const group = page.getByRole('group', { name: 'What to show while it runs' })
+    await expect(group).toBeVisible()
+    await expect(group.getByRole('button', { name: 'Screensaver' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    // Fullscreen belongs to the screensaver, so it is only in reach there.
+    const fullscreen = page.getByRole('button', { name: 'Fullscreen' })
+    await expect(fullscreen).toBeEnabled()
+    await group.getByRole('button', { name: 'Panel' }).click()
+    await expect(fullscreen).toBeDisabled()
+    await group.getByRole('button', { name: 'Screensaver' }).click()
+    await expect(fullscreen).toBeEnabled()
+
+    await group.getByRole('button', { name: 'Panel' }).click()
+    await page.getByRole('button', { name: 'Start keeping the screen on' }).click()
+    await expect(page.locator('.stage')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Screen lock held' })).toBeVisible()
+    await expect(page).toHaveTitle(/· hearth$/)
+  })
+
+  test('lights an ember in the header while it holds, and leaves it still when idle', async ({
+    page,
+  }) => {
+    await openPanel(page, { stub: true })
+    const led = page.locator('.ember-led')
+    await expect(page.locator('.header-status')).toHaveText('Idle')
+    // Idle is quiet: no fire, no animation at all.
+    expect(await led.evaluate((element) => element.getAnimations({ subtree: true }).length)).toBe(0)
+
+    await startWatch(page)
+    await page.keyboard.press('v')
+    await expect(page.locator('.header-status')).toContainText('On watch')
+    await expect(led.locator('.ember-led-core')).toHaveCSS('background-color', 'rgb(231, 150, 110)')
+
+    const animations = await led.evaluate((element) =>
+      element
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation as CSSAnimation).animationName),
+    )
+    expect(animations).toContain('ember-breathe')
+    expect(animations).toContain('ember-flicker')
+    expect(animations).toContain('ember-ping')
   })
 
   test('offers every screensaver, with the clock chosen', async ({ page }) => {

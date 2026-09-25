@@ -2,8 +2,8 @@ import { clampAgents, isDimTier, isModeId, type DimTier, type ModeId } from './p
 
 export type Appearance = 'auto' | 'light' | 'dark'
 
-/** What to put on the screen while the watch runs. */
-export type WhileRunning = 'screensaver' | 'panel'
+/** Where the watch shows: the black stage, the regular screen, or a mini window. */
+export type WhileRunning = 'screensaver' | 'panel' | 'mini'
 
 export interface Prefs {
   mode: ModeId
@@ -14,15 +14,12 @@ export interface Prefs {
   hour24: boolean
   warm: boolean
   /**
-   * Off by default: starting the watch must not take the screen. The field is
-   * named for what it does rather than reusing the old `fullscreen`, so a stored
-   * `true` from before this default cannot put anyone back in fullscreen.
+   * Only the screensaver may take the whole screen, and only when this is on.
+   * Off by default: starting the watch must not grab the screen.
    */
   fullscreenOnStart: boolean
   media: boolean
-  miniWindow: boolean
   agents: number
-  /** The regular screen is always one click away. */
   whileRunning: WhileRunning
 }
 
@@ -43,7 +40,6 @@ const BOOLEAN_KEYS = [
   'warm',
   'fullscreenOnStart',
   'media',
-  'miniWindow',
 ] as const
 
 /** Local storage throws when a browser blocks it, which is not worth failing over. */
@@ -74,7 +70,6 @@ export function defaultPrefs(): Prefs {
     warm: true,
     fullscreenOnStart: false,
     media: true,
-    miniWindow: false,
     agents: 3,
     whileRunning: 'screensaver',
   }
@@ -103,8 +98,11 @@ export function readPrefs(store: StorageLike | undefined = localStore()): Prefs 
 
   if (typeof record.mode === 'string' && isModeId(record.mode)) prefs.mode = record.mode
   if (typeof record.dim === 'string' && isDimTier(record.dim)) prefs.dim = record.dim
-  if (record.whileRunning === 'panel' || record.whileRunning === 'screensaver') {
+  if (record.whileRunning === 'panel' || record.whileRunning === 'mini' || record.whileRunning === 'screensaver') {
     prefs.whileRunning = record.whileRunning
+  } else if (record.miniWindow === true) {
+    // Before the modes were one control, the mini window was its own switch.
+    prefs.whileRunning = 'mini'
   }
   if (typeof record.agents === 'number') prefs.agents = clampAgents(record.agents)
   for (const key of BOOLEAN_KEYS) {

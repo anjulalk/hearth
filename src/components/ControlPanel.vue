@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import AppearanceToggle from './AppearanceToggle.vue'
 import BookmarkPanel from './BookmarkPanel.vue'
-import EmberMark from './EmberMark.vue'
 import FaqPanel from './FaqPanel.vue'
 import SettingsPanel from './SettingsPanel.vue'
 import StatusPanel from './StatusPanel.vue'
@@ -15,17 +14,23 @@ const { awakeState, dayMs, elapsedMs, hold, running } = store
 /** The header's one glance: is it holding, and for how long. */
 const status = computed(() => {
   if (!running.value) {
-    return dayMs.value > 0 ? `idle · today ${elapsedShort(dayMs.value)}` : 'idle'
+    return dayMs.value > 0 ? `Idle · today ${elapsedShort(dayMs.value)}` : 'Idle'
   }
   const kept = elapsedShort(elapsedMs.value)
   switch (hold.value.level) {
     case 'screen':
-      return `on watch · ${kept}`
+      return `On watch · ${kept}`
     case 'media':
-      return `${awakeState.visible ? 'media hold' : 'in the background'} · ${kept}`
+      return `${awakeState.visible ? 'Media hold only' : 'In the background'} · ${kept}`
     default:
-      return `weak hold · ${kept}`
+      return `Weak hold · ${kept}`
   }
+})
+
+/** The ember's colour and how alive it looks, which is the hold's state. */
+const ember = computed(() => {
+  if (!running.value) return 'off'
+  return hold.value.level === 'screen' ? 'on' : hold.value.level === 'media' ? 'media' : 'weak'
 })
 </script>
 
@@ -37,13 +42,17 @@ const status = computed(() => {
     <header class="pb-6 sm:pb-10">
       <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <h1
-          class="ui flex w-full items-center gap-2.5 text-xl leading-[1.2] font-semibold tracking-[-0.011em] text-ink sm:w-auto"
+          class="ui w-full text-xl leading-[1.2] font-semibold tracking-[-0.011em] text-ink sm:w-auto"
         >
-          <span>hearth</span>
-          <EmberMark :size="26" />
+          hearth
         </h1>
-        <p class="header-status" :data-tone="running ? hold.tone : 'off'" :title="hold.detail">
-          <span class="dot" />{{ status }}
+        <p class="header-status" :data-state="ember" :title="hold.detail">
+          <span class="ember-led" aria-hidden="true">
+            <span class="ember-led-halo" />
+            <span class="ember-led-glow" />
+            <span class="ember-led-core" />
+          </span>
+          {{ status }}
         </p>
       </div>
     </header>
@@ -63,7 +72,7 @@ const status = computed(() => {
       <FaqPanel />
     </main>
 
-    <footer class="footer ui mt-12 py-10 text-sm text-soft">
+    <footer class="footer ui py-10 text-sm text-soft">
       <div class="flex items-center justify-between gap-4">
         <div>
           <p>
@@ -74,19 +83,7 @@ const status = computed(() => {
               >Anjula Karunarathne</a
             >.
           </p>
-          <p class="mt-1 text-xs">
-            <a
-              class="underline-offset-2 transition-colors hover:text-ink hover:underline"
-              href="https://github.com/anjulalk/hearth"
-              >Source</a
-            >
-            <span class="mx-1.5">·</span>
-            <a
-              class="underline-offset-2 transition-colors hover:text-ink hover:underline"
-              href="https://anjula.dev/design/tokens.css"
-              >Design system</a
-            >
-          </p>
+          <p class="text-xs">Nothing leaves the page: no analytics, no account.</p>
         </div>
         <AppearanceToggle />
       </div>

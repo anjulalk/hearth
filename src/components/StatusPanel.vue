@@ -7,7 +7,6 @@ import { useStore } from '@/lib/store'
 
 const store = useStore()
 const {
-  prefs,
   awakeState,
   battery,
   backgroundMs,
@@ -16,7 +15,6 @@ const {
   hold,
   lockedMs,
   miniReport,
-  miniSupported,
   running,
 } = store
 
@@ -58,14 +56,6 @@ const problems = computed(() =>
     miniReport.message ?? '',
   ].filter(Boolean),
 )
-
-function setMiniWindow(event: Event): void {
-  const value = (event.target as HTMLInputElement).checked
-  prefs.miniWindow = value
-  if (!running.value) return
-  if (value) void store.openMini()
-  else if (miniReport.state === 'open') store.toggleMini()
-}
 </script>
 
 <template>
@@ -85,30 +75,32 @@ function setMiniWindow(event: Event): void {
       </div>
     </div>
 
-    <div
-      v-if="running"
-      class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-hair pt-4"
-    >
-      <dl class="flex flex-wrap gap-x-6 gap-y-2">
-        <div>
-          <dt class="label text-soft">Kept watch</dt>
-          <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(elapsedMs) }}</dd>
-        </div>
-        <div>
-          <dt class="label text-soft">Screen lock</dt>
-          <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(lockedMs) }}</dd>
-        </div>
-        <div>
-          <dt class="label text-soft">In the background</dt>
-          <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(backgroundMs) }}</dd>
-        </div>
-        <div>
-          <dt class="label text-soft">Today</dt>
-          <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(dayMs) }}</dd>
-        </div>
-      </dl>
-      <ViewSwitch tone="paper" />
+    <!-- Where the watch shows. One choice, whether or not it is running yet. -->
+    <div class="mt-5 border-t border-hair pt-4">
+      <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <p class="label text-soft">While the watch runs</p>
+        <ViewSwitch tone="paper" />
+      </div>
     </div>
+
+    <dl v-if="running" class="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-hair pt-4">
+      <div>
+        <dt class="label text-soft">Kept watch</dt>
+        <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(elapsedMs) }}</dd>
+      </div>
+      <div>
+        <dt class="label text-soft">Screen lock</dt>
+        <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(lockedMs) }}</dd>
+      </div>
+      <div>
+        <dt class="label text-soft">In the background</dt>
+        <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(backgroundMs) }}</dd>
+      </div>
+      <div>
+        <dt class="label text-soft">Today</dt>
+        <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(dayMs) }}</dd>
+      </div>
+    </dl>
 
     <div class="mt-4 flex flex-wrap items-center gap-2">
       <span class="chip" :data-state="lockState"><span class="dot" />wake lock {{ lockLabel }}</span>
@@ -125,25 +117,5 @@ function setMiniWindow(event: Event): void {
     <p v-for="problem in problems" :key="problem" class="mt-3 text-sm leading-snug text-soft">
       {{ problem }}
     </p>
-
-    <label class="field-row mt-4">
-      <span>
-        <span class="ui text-base font-medium text-ink">Mini window</span>
-        <span class="mt-0.5 block max-w-[54ch] text-sm leading-snug text-soft">
-          {{
-            miniSupported
-              ? 'A small window that holds its own lock while you work elsewhere.'
-              : 'This browser has no document picture-in-picture, so the media hold does that work. Chrome and Edge have it.'
-          }}
-        </span>
-      </span>
-      <input
-        class="toggle"
-        type="checkbox"
-        :checked="prefs.miniWindow"
-        :disabled="!miniSupported"
-        @change="setMiniWindow"
-      />
-    </label>
   </section>
 </template>

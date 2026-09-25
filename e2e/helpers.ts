@@ -14,7 +14,6 @@ export const PREFERENCES = {
   warm: true,
   fullscreenOnStart: false,
   media: true,
-  miniWindow: false,
   agents: 3,
   whileRunning: 'screensaver',
 }
@@ -150,7 +149,7 @@ export async function favicon(page: Page): Promise<string> {
 }
 
 export function holdLevelFromTitle(title: string): 'lit' | 'dim' | 'out' {
-  if (title.startsWith('screen lock held')) return 'lit'
-  if (title.startsWith('in the background') || title.startsWith('media hold only')) return 'dim'
+  if (title.startsWith('Screen lock held')) return 'lit'
+  if (title.startsWith('In the background') || title.startsWith('Media hold only')) return 'dim'
   return 'out'
 }

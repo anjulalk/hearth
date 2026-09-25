@@ -105,7 +105,7 @@ test.describe('the watch', () => {
     await startWatch(page)
 
     const title = await page.title()
-    expect(title).toMatch(/^(screen lock held|media hold only|in the background|weak hold) · hearth$/)
+    expect(title).toMatch(/^(Screen lock held|Media hold only|In the background|Weak hold) · hearth$/)
 
     const svg = await favicon(page)
     expect(svg).toContain('data:image/svg+xml')
@@ -218,7 +218,7 @@ test.describe('the watch', () => {
   test('asks for the lock again when the browser lets it go', async ({ page }) => {
     await openPanel(page, { stub: 'releasable' })
     await startWatch(page)
-    await expect(page).toHaveTitle(/^screen lock held/)
+    await expect(page).toHaveTitle(/^Screen lock held/)
 
     const requests = (): Promise<number> =>
       page.evaluate(() => (window as unknown as { __wake: { requests: number } }).__wake.requests)
@@ -238,18 +238,19 @@ test.describe('the watch', () => {
       undefined,
       { timeout: 10_000 },
     )
-    await expect(page).toHaveTitle(/^screen lock held/)
+    await expect(page).toHaveTitle(/^Screen lock held/)
   })
 
   test('offers the mini window exactly where the browser has it', async ({ page }) => {
-    await openPanel(page, { stub: true })
-    await startWatch(page)
-    await showStageBar(page)
+    await openPanel(page, { stub: true, prefs: { whileRunning: 'panel' } })
+    await page.getByRole('button', { name: 'Start keeping the screen on' }).click()
 
     const supported = await page.evaluate(() => 'documentPictureInPicture' in window)
-    const button = page.getByRole('button', { name: /Mini window|Close mini/ })
-    if (supported) await expect(button).toBeVisible()
-    else await expect(button).toHaveCount(0)
+    const segment = page
+      .getByRole('group', { name: 'What to show while it runs' })
+      .getByRole('button', { name: 'Mini window' })
+    if (supported) await expect(segment).toBeEnabled()
+    else await expect(segment).toBeDisabled()
   })
 
   test('dims in steps while nobody is there, and wakes on a move', async ({ page }) => {

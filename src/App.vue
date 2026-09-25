@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, provide } from 'vue'
 import ControlPanel from '@/components/ControlPanel.vue'
 import Screensaver from '@/screens/Screensaver.vue'
+import type { WhileRunning } from '@/lib/prefs'
 import { STORE_KEY, createStore } from '@/lib/store'
 
 const store = createStore()
@@ -28,12 +29,16 @@ function onKey(event: KeyboardEvent): void {
       void store.toggle()
       break
     case 'v':
-    case 'V':
-      if (store.running.value) {
-        store.setView(store.prefs.whileRunning === 'screensaver' ? 'panel' : 'screensaver')
-        store.showControls()
-      }
+    case 'V': {
+      if (!store.running.value) break
+      const order: WhileRunning[] = store.miniSupported
+        ? ['screensaver', 'panel', 'mini']
+        : ['screensaver', 'panel']
+      const index = order.indexOf(store.prefs.whileRunning)
+      store.setView(order[(index + 1) % order.length] ?? 'screensaver')
+      store.showControls()
       break
+    }
     case 'f':
     case 'F':
       void store.toggleFullscreen()

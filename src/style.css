@@ -746,30 +746,109 @@
 }
 
 /* The status dot in the panel, the one glanceable thing on the paper side. */
-/* The header's status line: chrome, one small dot, and the watch's length. */
+/* The header's status line: chrome, a small ember, and the watch's length. */
 .header-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 400;
   color: var(--color-soft);
+  --ember: var(--color-faint);
+  --ember-glow: transparent;
 }
 
-.header-status .dot {
-  width: 6px;
-  height: 6px;
+.header-status[data-state='on'] {
+  --ember: #e7966e;
+  --ember-glow: rgb(231 150 110 / 0.55);
+}
+
+.header-status[data-state='media'],
+.header-status[data-state='weak'] {
+  --ember: #d3b45c;
+  --ember-glow: rgb(211 180 92 / 0.45);
+}
+
+/* The ember. Three layers on three timings, all transform and opacity, all on
+   a few pixels: a small fire never settles, which is what makes it read as
+   live rather than as a coloured dot. Nothing here repaints the page. */
+.ember-led {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 0.62rem;
+  height: 0.62rem;
+}
+
+.ember-led-core,
+.ember-led-glow,
+.ember-led-halo {
+  position: absolute;
+  inset: 0;
   border-radius: 50%;
-  background: var(--color-faint);
+  pointer-events: none;
 }
 
-.header-status[data-tone='on'] .dot {
-  background: var(--color-positive);
+.ember-led-core {
+  background: var(--ember);
+  box-shadow: 0 0 6px 1px var(--ember-glow);
+  animation: ember-breathe 3.6s var(--ease) infinite alternate;
 }
 
-.header-status[data-tone='warn'] .dot {
-  background: var(--color-gold);
+.ember-led-glow {
+  background: radial-gradient(circle, var(--ember-glow), transparent 70%);
+  animation: ember-flicker 2.3s steps(4, end) infinite alternate;
+}
+
+.ember-led-halo {
+  border: 1px solid var(--ember);
+  opacity: 0;
+  animation: ember-ping 4.8s var(--ease) infinite;
+}
+
+/* Nothing is running: the ember is unlit and still. */
+.header-status[data-state='off'] .ember-led-core {
+  animation: none;
+}
+
+.header-status[data-state='off'] .ember-led-glow,
+.header-status[data-state='off'] .ember-led-halo {
+  display: none;
+}
+
+@keyframes ember-breathe {
+  from {
+    transform: scale(0.88);
+    opacity: 0.82;
+  }
+  to {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+}
+
+@keyframes ember-flicker {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes ember-ping {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.45;
+  }
+  65%,
+  100% {
+    transform: scale(2.3);
+    opacity: 0;
+  }
 }
 
 /* The screensaver switch, on paper and on the stage. The halves of the stage
@@ -778,14 +857,14 @@
   display: inline-flex;
 }
 
-.view-switch[data-tone='paper'] {
+.view-modes[data-tone='paper'] .view-switch {
   padding: 2px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius);
   background: var(--color-wash);
 }
 
-.view-switch[data-tone='paper'] button {
+.view-modes[data-tone='paper'] .view-switch button {
   padding: 0.4rem 0.7rem;
   border: 0;
   border-radius: 0.45rem;
@@ -797,19 +876,19 @@
   cursor: pointer;
 }
 
-.view-switch[data-tone='paper'] button[aria-pressed='true'] {
+.view-modes[data-tone='paper'] .view-switch button[aria-pressed='true'] {
   background: var(--color-card);
   color: var(--color-ink);
   box-shadow: 0 1px 2px rgb(28 27 23 / 0.06);
 }
 
-.view-switch[data-tone='stage'] {
+.view-modes[data-tone='stage'] .view-switch {
   border: 1px solid var(--ss-hair);
   border-radius: 999px;
   overflow: hidden;
 }
 
-.view-switch[data-tone='stage'] button {
+.view-modes[data-tone='stage'] .view-switch button {
   padding: 0.45rem 0.7rem;
   border: 0;
   background: none;
@@ -820,13 +899,33 @@
   cursor: pointer;
 }
 
-.view-switch[data-tone='stage'] button + button {
+.view-modes[data-tone='stage'] .view-switch button + button {
   border-left: 1px solid var(--ss-hair);
 }
 
-.view-switch[data-tone='stage'] button[aria-pressed='true'] {
+.view-modes[data-tone='stage'] .view-switch button[aria-pressed='true'] {
   background: rgb(255 255 255 / 0.08);
   color: var(--ss-ink);
+}
+
+.view-switch button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.view-modes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.view-blurb {
+  flex-basis: 100%;
+  margin: 0.15rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--color-soft);
 }
 
 .split {

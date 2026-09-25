@@ -66,9 +66,6 @@ function onPointerDown(): void {
       <button type="button" @click="store.toggleFullscreen()">
         {{ fullscreen ? 'Windowed' : 'Fullscreen' }}
       </button>
-      <button v-if="running && store.miniSupported" type="button" @click="store.toggleMini()">
-        {{ store.miniReport.state === 'open' ? 'Close mini' : 'Mini window' }}
-      </button>
     </div>
 
     <p v-if="!running" class="stage-hint">

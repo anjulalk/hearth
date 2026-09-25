@@ -78,16 +78,21 @@ recurring timer stops entirely while the tab is hidden.
 | Key | What it does |
 | --- | --- |
 | `Space` | start or stop the watch |
-| `V` | the screensaver, or the regular screen |
+| `V` | next mode: screensaver, panel, mini window |
 | `M` | next screensaver |
 | `D` | next dim step |
 | `F` | fullscreen |
 | `N` | mini window |
 | `Esc` | leave fullscreen, or a preview |
 
-The stage bar carries a split button for the screensaver: the name advances it, the chevron opens
-the list of five. Next to it, **Screensaver / Panel** keeps the regular screen one click away while
-the watch runs, so the settings are still reachable without stopping.
+While the watch runs it can live in one of three places, chosen in the status card before or
+during a watch: the **Screensaver** (the black stage), the **Panel** (the regular screen, with the
+watch running behind it), or the **Mini window** (a small always-on-top window, so you can work in
+the one running the agents). **Fullscreen** sits in the same control and belongs to the screensaver,
+so starting never grabs the screen unless you asked for it.
+
+The stage bar carries the same modes, plus a split button for the screensaver: the name advances it,
+the chevron opens the list of five.
 
 Settings live in local storage, so they come back with the tab. So does a running watch: reload the
 page, or reopen it after the browser was closed, and hearth picks up where it left off.

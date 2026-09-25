@@ -77,9 +77,14 @@ The panel follows `DESIGN.md`'s Page shell, and the black stage is the one excep
   make a decision.
 - **Copy stays short.** One line of truth per idea: a hold's detail, a setting's blurb, a FAQ
   answer. Long text is what makes an app feel like homework.
-- **Two controls on the stage bar are joined**: the `Screensaver / Panel` switch, and the split
-  button whose name half advances the screensaver while its chevron opens the list. An open menu
-  keeps the bar up, which is what `pinControls` is for.
+- **The modes are one control**, in the status card and on the stage bar: `Screensaver`, `Panel`,
+  `Mini window`, with `Fullscreen` beside them. The mini window is a mode, not a settings toggle,
+  and fullscreen belongs to the screensaver so it is disabled for the other two. Switching a mode
+  while the watch runs takes effect at once: that is what `setView` is for. The old `miniWindow`
+  boolean is migrated to `whileRunning: 'mini'`.
+- **Two controls on the stage bar are joined**: the mode switch, and the split button whose name
+  half advances the screensaver while its chevron opens the list. An open menu keeps the bar up,
+  which is what `pinControls` is for.
 - **The regular screen is never more than one click away** from the screensaver, and fullscreen is
   never taken on its own: `fullscreenOnStart` is off by default and starting the watch must not grab
   the screen.

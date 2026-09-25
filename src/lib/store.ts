@@ -99,8 +99,29 @@ export function createStore() {
     () => preview.value || (awakeState.running && prefs.whileRunning === 'screensaver'),
   )
 
+  /**
+   * The modes are one choice: where the watch shows. Switching while it runs
+   * takes effect at once, because the point is to move it without stopping.
+   */
   function setView(value: WhileRunning): void {
+    const previous = prefs.whileRunning
+    if (value === previous) return
     prefs.whileRunning = value
+    if (!awake.isRunning()) return
+
+    if (value === 'mini' && MiniWindow.supported()) void openMini()
+    else if (previous === 'mini' && mini.isOpen()) mini.close()
+
+    if (value === 'screensaver' && prefs.fullscreenOnStart) void enterFullscreen()
+    else if (previous === 'screensaver') void exitFullscreen()
+  }
+
+  /** Fullscreen belongs to the screensaver, so it has the one switch. */
+  function setFullscreen(value: boolean): void {
+    prefs.fullscreenOnStart = value
+    if (!awake.isRunning() || prefs.whileRunning !== 'screensaver') return
+    if (value) void enterFullscreen()
+    else void exitFullscreen()
   }
 
   /** A menu that is open keeps the bar up, however still the mouse is. */
@@ -298,10 +319,12 @@ export function createStore() {
     controlsVisible.value = false
     await awake.start(startedAt)
     if (origin !== 'user') return
-    // The mini window is the stronger hold, so it replaces fullscreen rather
-    // than fighting it. Nothing takes the screen unless it was asked to.
-    if (prefs.miniWindow && MiniWindow.supported()) await openMini()
-    else if (prefs.fullscreenOnStart) await enterFullscreen()
+    // The mode decides what happens next, and only the screensaver may take the
+    // whole screen.
+    if (prefs.whileRunning === 'mini' && MiniWindow.supported()) await openMini()
+    else if (prefs.whileRunning === 'screensaver' && prefs.fullscreenOnStart) {
+      await enterFullscreen()
+    }
   }
 
   /** Called when the page goes away, so a long gap can be told from a refresh. */
@@ -414,7 +437,11 @@ export function createStore() {
   watchEffect(() => {
     const status = hold.value
     setFavicon(status.level === 'screen' ? 'lit' : status.level === 'media' ? 'dim' : 'out')
-    document.title = status.level === 'off' ? TITLE : `${status.short} · hearth`
+    // The tab title is chrome a person reads, so it starts with a capital.
+    document.title =
+      status.level === 'off'
+        ? TITLE
+        : `${status.short.charAt(0).toUpperCase()}${status.short.slice(1)} · hearth`
   })
 
   watchEffect(() => {
@@ -465,6 +492,7 @@ export function createStore() {
     setAgents: (value: number) => {
       prefs.agents = clampAgents(value)
     },
+    setFullscreen,
     setMode: (value: ModeId) => {
       prefs.mode = value
     },
