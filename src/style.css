@@ -220,7 +220,7 @@
     background: var(--color-card);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 500;
     line-height: 1;
     cursor: pointer;
@@ -246,7 +246,7 @@
     border-color: color-mix(in srgb, var(--color-clay) 45%, transparent);
     background: color-mix(in srgb, var(--color-clay) 10%, transparent);
     color: var(--color-clay-strong);
-    font-size: 1.0625rem;
+    font-size: 1rem;
     padding: 0.9rem 1.5rem;
   }
 

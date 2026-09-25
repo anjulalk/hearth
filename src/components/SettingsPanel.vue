@@ -73,8 +73,8 @@ const bool = (key: BoolKey): boolean => prefs[key]
 
 <template>
   <section class="card rise p-5 sm:p-6">
-    <h2 class="text-[1.25rem] text-ink">Screensaver</h2>
-    <p class="mt-1 max-w-[58ch] text-[0.9375rem] leading-snug text-mute">
+    <h2 class="text-xl text-ink">Screensaver</h2>
+    <p class="mt-1 max-w-[58ch] text-base leading-snug text-mute">
       The stage stays true black, so an OLED panel leaves those pixels off. Every mode is a handful
       of lit pixels and animations that only move or fade, which the compositor can do without the
       processor.
@@ -103,8 +103,8 @@ const bool = (key: BoolKey): boolean => prefs[key]
           :class="{ 'border-line bg-wash text-ink': prefs.dim === tier.id }"
           @click="prefs.dim = tier.id"
         >
-          <span class="ui text-[0.875rem] font-medium">{{ tier.label }}</span>
-          <span class="ui ml-1.5 text-[0.75rem] text-soft">{{ tier.blurb }}</span>
+          <span class="ui text-sm font-medium">{{ tier.label }}</span>
+          <span class="ui ml-1.5 text-xs text-soft">{{ tier.blurb }}</span>
         </button>
       </div>
     </div>
@@ -112,23 +112,23 @@ const bool = (key: BoolKey): boolean => prefs[key]
     <div class="mt-5 border-t border-hair pt-4">
       <div class="field-row">
         <span>
-          <span class="ui text-[0.9375rem] font-medium text-ink">Agents on the stage</span>
-          <span class="mt-0.5 block max-w-[54ch] text-[0.875rem] leading-snug text-soft">
+          <span class="ui text-base font-medium text-ink">Agents on the stage</span>
+          <span class="mt-0.5 block max-w-[54ch] text-sm leading-snug text-soft">
             How many jobs the Agents screensaver counts. It is a tally for the story you are telling
             yourself, not a connection to anything.
           </span>
         </span>
         <span class="flex items-center gap-2">
           <button type="button" class="btn btn-quiet px-2.5 py-1.5" aria-label="One fewer agent" @click="stepAgents(-1)">−</button>
-          <span class="num w-6 text-center text-[1rem] text-ink">{{ prefs.agents }}</span>
+          <span class="num w-6 text-center text-base text-ink">{{ prefs.agents }}</span>
           <button type="button" class="btn btn-quiet px-2.5 py-1.5" aria-label="One more agent" @click="stepAgents(1)">+</button>
         </span>
       </div>
 
       <label v-for="toggle in TOGGLES" :key="toggle.key" class="field-row">
         <span>
-          <span class="ui text-[0.9375rem] font-medium text-ink">{{ toggle.title }}</span>
-          <span class="mt-0.5 block max-w-[54ch] text-[0.875rem] leading-snug text-soft">
+          <span class="ui text-base font-medium text-ink">{{ toggle.title }}</span>
+          <span class="mt-0.5 block max-w-[54ch] text-sm leading-snug text-soft">
             {{ toggle.blurb }}
           </span>
         </span>
@@ -141,7 +141,7 @@ const bool = (key: BoolKey): boolean => prefs[key]
       </label>
     </div>
 
-    <p v-if="running" class="mt-4 text-[0.875rem] leading-snug text-soft">
+    <p v-if="running" class="mt-4 text-sm leading-snug text-soft">
       Changes apply to the screensaver that is already running.
     </p>
   </section>

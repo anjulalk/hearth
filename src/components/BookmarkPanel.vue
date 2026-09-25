@@ -56,8 +56,8 @@ async function installApp(): Promise<void> {
 
 <template>
   <section class="card rise p-5 sm:p-6">
-    <h2 class="text-[1.25rem] text-ink">Put it one click away</h2>
-    <p class="mt-1 max-w-[58ch] text-[0.9375rem] leading-snug text-mute">
+    <h2 class="text-xl text-ink">Put it one click away</h2>
+    <p class="mt-1 max-w-[58ch] text-base leading-snug text-mute">
       The link carries <span class="num">?start=1</span>, which puts hearth on watch as it opens.
       Opening it again continues the same watch instead of restarting the clock, so the bookmark is
       safe to press twice.
@@ -66,7 +66,7 @@ async function installApp(): Promise<void> {
     <div class="mt-4 grid gap-3 sm:grid-cols-3">
       <div class="rounded-card border border-line bg-wash p-4">
         <p class="label text-soft">Bookmark</p>
-        <p class="mt-1.5 text-[0.875rem] leading-snug text-mute">
+        <p class="mt-1.5 text-sm leading-snug text-mute">
           Drag this to the bookmarks bar. One click opens hearth and starts the watch.
         </p>
         <a
@@ -81,7 +81,7 @@ async function installApp(): Promise<void> {
 
       <div class="rounded-card border border-line bg-wash p-4">
         <p class="label text-soft">Copy the link</p>
-        <p class="mt-1.5 text-[0.875rem] leading-snug text-mute">
+        <p class="mt-1.5 text-sm leading-snug text-mute">
           Keep it in a note, a launcher or a shortcut of your own.
         </p>
         <button class="btn mt-3 w-full" type="button" @click="copy('link', wakeUrl)">
@@ -91,7 +91,7 @@ async function installApp(): Promise<void> {
 
       <div class="rounded-card border border-line bg-wash p-4">
         <p class="label text-soft">Install</p>
-        <p class="mt-1.5 text-[0.875rem] leading-snug text-mute">
+        <p class="mt-1.5 text-sm leading-snug text-mute">
           {{
             installed
               ? 'Installed. It opens in its own window, with no browser chrome to light up the panel.'
@@ -106,7 +106,7 @@ async function installApp(): Promise<void> {
         >
           Install hearth
         </button>
-        <p v-else class="mt-3 text-[0.8125rem] leading-snug text-soft">
+        <p v-else class="mt-3 text-sm leading-snug text-soft">
           {{
             installed
               ? 'Already installed.'
@@ -120,8 +120,8 @@ async function installApp(): Promise<void> {
       <p class="label text-soft">Keyboard</p>
       <dl class="mt-2 grid gap-x-8 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
         <div v-for="shortcut in SHORTCUTS" :key="shortcut.keys" class="flex items-baseline gap-3">
-          <dt class="num min-w-[3.5rem] text-[0.875rem] text-ink">{{ shortcut.keys }}</dt>
-          <dd class="text-[0.875rem] text-mute">{{ shortcut.what }}</dd>
+          <dt class="num min-w-[3.5rem] text-sm text-ink">{{ shortcut.keys }}</dt>
+          <dd class="ui text-sm text-mute">{{ shortcut.what }}</dd>
         </div>
       </dl>
     </div>

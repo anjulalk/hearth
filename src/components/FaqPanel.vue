@@ -51,14 +51,14 @@ const ITEMS: ReadonlyArray<{ q: string; a: string[] }> = [
 
 <template>
   <section class="card rise p-5 sm:p-6">
-    <h2 class="text-[1.25rem] text-ink">Straight answers</h2>
+    <h2 class="text-xl text-ink">Straight answers</h2>
     <details v-for="(item, index) in ITEMS" :key="item.q" class="faq" :open="index === 0">
       <summary>
-        <span class="text-[1rem] text-ink">{{ item.q }}</span>
+        <span class="ui text-base text-ink">{{ item.q }}</span>
         <span class="faq-mark" aria-hidden="true">+</span>
       </summary>
       <div class="faq-body">
-        <p v-for="paragraph in item.a" :key="paragraph" class="text-[0.9375rem] leading-[1.7] text-mute">
+        <p v-for="paragraph in item.a" :key="paragraph" class="text-base leading-7 text-mute">
           {{ paragraph }}
         </p>
       </div>

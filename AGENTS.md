@@ -73,6 +73,9 @@ The panel follows `DESIGN.md`'s Page shell, and the black stage is the one excep
 - **Accent**: never a solid fill with white text. White on `--clay` is 4.2:1 in light and about
   2:1 on the lighter dark-mode accent, and the system's floor is 4.5:1, so a primary action is
   clay text on a clay tint (`color-mix` at 10%, border at 45%).
+- **Type scale**: only 0.75, 0.875, 1, 1.125, 1.25, 1.5, 2.25 and 3.75rem exist. 13px and 15px
+  do not: a hint or a caption is `text-sm`, a control label or interface body is `text-base`.
+  No arbitrary `text-[…rem]` values in markup.
 
 ## The two holds
 

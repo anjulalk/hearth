@@ -16,8 +16,8 @@ const emit = defineEmits<{ select: []; preview: [] }>()
     >
       <span class="mode-art" :data-mode="mode.id" aria-hidden="true"><i /><i /><i /><i /></span>
       <span class="mode-text">
-        <span class="ui text-[0.8125rem] font-medium text-ink">{{ mode.name }}</span>
-        <span class="mt-0.5 block text-[0.75rem] leading-snug text-soft">{{ mode.blurb }}</span>
+        <span class="ui text-sm font-medium text-ink">{{ mode.name }}</span>
+        <span class="mt-0.5 block text-xs leading-snug text-soft">{{ mode.blurb }}</span>
       </span>
     </button>
     <button type="button" class="mode-preview label" @click.stop="emit('preview')">Preview</button>
