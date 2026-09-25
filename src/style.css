@@ -746,6 +746,151 @@
 }
 
 /* The status dot in the panel, the one glanceable thing on the paper side. */
+/* The header's status line: chrome, one small dot, and the watch's length. */
+.header-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-soft);
+}
+
+.header-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-faint);
+}
+
+.header-status[data-tone='on'] .dot {
+  background: var(--color-positive);
+}
+
+.header-status[data-tone='warn'] .dot {
+  background: var(--color-gold);
+}
+
+/* The screensaver switch, on paper and on the stage. The halves of the stage
+   one share a middle border, which is what makes it a split button. */
+.view-switch {
+  display: inline-flex;
+}
+
+.view-switch[data-tone='paper'] {
+  padding: 2px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-wash);
+}
+
+.view-switch[data-tone='paper'] button {
+  padding: 0.4rem 0.7rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: none;
+  color: var(--color-mute);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.view-switch[data-tone='paper'] button[aria-pressed='true'] {
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px rgb(28 27 23 / 0.06);
+}
+
+.view-switch[data-tone='stage'] {
+  border: 1px solid var(--ss-hair);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.view-switch[data-tone='stage'] button {
+  padding: 0.45rem 0.7rem;
+  border: 0;
+  background: none;
+  color: var(--ss-dim);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.view-switch[data-tone='stage'] button + button {
+  border-left: 1px solid var(--ss-hair);
+}
+
+.view-switch[data-tone='stage'] button[aria-pressed='true'] {
+  background: rgb(255 255 255 / 0.08);
+  color: var(--ss-ink);
+}
+
+.split {
+  position: relative;
+  display: inline-flex;
+}
+
+.split button {
+  border: 1px solid var(--ss-hair);
+  background: none;
+  color: var(--ss-dim);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.split-main {
+  padding: 0.45rem 0.7rem;
+  border-right: 0;
+  border-radius: 999px 0 0 999px;
+  color: var(--ss-ink);
+}
+
+.split-more {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.5rem;
+  border-radius: 0 999px 999px 0;
+}
+
+.split button:hover {
+  background: rgb(255 255 255 / 0.07);
+  color: var(--ss-ink);
+}
+
+.split-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 2;
+  min-width: 9rem;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  border: 1px solid var(--ss-hair);
+  border-radius: 0.6rem;
+  background: rgb(10 10 10 / 0.96);
+}
+
+.split-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-radius: 0.4rem;
+  text-align: left;
+}
+
+.split-menu button[aria-selected='true'] {
+  background: rgb(255 255 255 / 0.08);
+  color: var(--ss-ink);
+}
+
 .status-dot {
   flex: none;
   width: 12px;

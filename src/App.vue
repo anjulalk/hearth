@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide } from 'vue'
+import { onBeforeUnmount, onMounted, provide } from 'vue'
 import ControlPanel from '@/components/ControlPanel.vue'
 import Screensaver from '@/screens/Screensaver.vue'
 import { STORE_KEY, createStore } from '@/lib/store'
@@ -7,7 +7,7 @@ import { STORE_KEY, createStore } from '@/lib/store'
 const store = createStore()
 provide(STORE_KEY, store)
 
-const showStage = computed(() => store.running.value || store.preview.value)
+const { showStage } = store
 
 function onKey(event: KeyboardEvent): void {
   if (event.key === 'Escape') {
@@ -26,6 +26,13 @@ function onKey(event: KeyboardEvent): void {
     case ' ':
       event.preventDefault()
       void store.toggle()
+      break
+    case 'v':
+    case 'V':
+      if (store.running.value) {
+        store.setView(store.prefs.whileRunning === 'screensaver' ? 'panel' : 'screensaver')
+        store.showControls()
+      }
       break
     case 'f':
     case 'F':
@@ -55,7 +62,9 @@ function onKey(event: KeyboardEvent): void {
 onMounted(() => {
   store.attach()
   window.addEventListener('keydown', onKey)
+  // A link that says so, a watch that was running, or nothing.
   if (store.autoStart) void store.start('auto')
+  else if (store.canRestore) void store.start('restore')
 })
 
 onBeforeUnmount(() => {

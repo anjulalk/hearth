@@ -2,10 +2,14 @@ import { expect, test } from '@playwright/test'
 import { openPanel } from './helpers'
 
 test.describe('the panel', () => {
-  test('says what it is and what it is not holding yet', async ({ page }) => {
+  test('says what it is, and what it is not holding yet', async ({ page }) => {
     await openPanel(page)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/hearth/)
-    await expect(page.locator('.intro-lede')).toContainText('keeps a screen on while a long job runs')
+    // The pitch leads with the OLED promise, which is the point of the stage.
+    await expect(page.locator('.intro-lede')).toContainText('keeps a screen awake while agents work')
+    await expect(page.locator('.intro-lede')).toContainText('true black')
+    await expect(page.locator('.intro-support')).toContainText('OLED')
+    await expect(page.locator('.header-status')).toHaveText(/idle/)
     await expect(page.getByText('Not holding the screen on')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Start keeping the screen on' })).toBeVisible()
     await expect(page.getByText('Idle', { exact: true })).toBeVisible()
@@ -14,9 +18,8 @@ test.describe('the panel', () => {
   test('wears the shared shell from the design system', async ({ page }) => {
     await openPanel(page)
 
-    // Header: the reference's numbers, read off the blog. Wordmark Inter 600 at
-    // 1.25rem on a 1.2 line with -0.011em tracking, menu at 0.875rem/500 on the
-    // reading line, which is what keeps the menu from looking cramped.
+    // Header: the wordmark at the reference's numbers, read off the blog, with
+    // the ember mark after it and the status line on the right.
     const wordmark = page.getByRole('heading', { level: 1 })
     await expect(wordmark).toHaveCSS('font-family', /Inter/)
     await expect(wordmark).toHaveCSS('font-size', '20px')
@@ -24,22 +27,20 @@ test.describe('the panel', () => {
     await expect(wordmark).toHaveCSS('line-height', '24px')
     await expect(wordmark).toHaveCSS('letter-spacing', '-0.22px')
     await expect(wordmark).toHaveCSS('color', 'rgb(68, 64, 58)')
-
-    const source = page.getByRole('link', { name: 'Source', exact: true })
-    await expect(source).toHaveCSS('font-family', /Inter/)
-    await expect(source).toHaveCSS('font-size', '14px')
-    await expect(source).toHaveCSS('font-weight', '500')
-    await expect(source).toHaveCSS('line-height', '28px')
-
-    // 1.75rem between menu items, from 640px.
-    const second = page.getByRole('link', { name: 'Design system', exact: true })
-    const sourceBox = await source.boundingBox()
-    const secondBox = await second.boundingBox()
-    const gap = (secondBox?.x ?? 0) - ((sourceBox?.x ?? 0) + (sourceBox?.width ?? 0))
-    expect(gap).toBeGreaterThan(26)
-    expect(gap).toBeLessThan(30)
-
     await expect(page.locator('header')).toHaveCSS('padding-bottom', '40px')
+
+    const wordmarkText = await page.locator('h1 span').boundingBox()
+    const mark = await page.locator('h1 svg').boundingBox()
+    expect(mark?.x ?? 0).toBeGreaterThanOrEqual((wordmarkText?.x ?? 0) + (wordmarkText?.width ?? 0))
+
+    // The status is header meta: Inter 0.875rem, ink-500, and on the right.
+    const status = page.locator('.header-status')
+    await expect(status).toHaveText('idle')
+    await expect(status).toHaveCSS('font-family', /Inter/)
+    await expect(status).toHaveCSS('font-size', '14px')
+    await expect(status).toHaveCSS('color', 'rgb(118, 112, 100)')
+    const statusBox = await status.boundingBox()
+    expect((statusBox?.x ?? 0) + (statusBox?.width ?? 0)).toBeGreaterThan(1100)
 
     // Intro: a lede in ink, a supporting line in ink-700 capped at 42rem.
     await expect(page.locator('.intro-lede')).toHaveCSS('font-size', '18px')
@@ -48,8 +49,8 @@ test.describe('the panel', () => {
     const support = await page.locator('.intro-support').boundingBox()
     expect(support?.width ?? 0).toBeLessThanOrEqual(672)
 
-    // Footer: chrome, small, ink-500, no rule dividing it from the page, and no
-    // licence or decision-making boilerplate.
+    // Footer: chrome, small, ink-500, no rule dividing it from the page, and the
+    // source links live down here now.
     const footer = page.locator('footer')
     await expect(footer).toHaveCSS('font-family', /Inter/)
     await expect(footer).toHaveCSS('font-size', '14px')
@@ -58,25 +59,22 @@ test.describe('the panel', () => {
     await expect(page.locator('footer p.text-xs')).toHaveCSS('font-size', '12px')
     await expect(footer).toContainText('Built by')
     await expect(footer).not.toContainText('MIT')
-    await expect(footer).not.toContainText('GitHub')
+    await expect(footer.getByRole('link', { name: 'Source' })).toHaveAttribute('href', /github\.com/)
+    await expect(footer.getByRole('link', { name: 'Design system' })).toHaveAttribute(
+      'href',
+      /tokens\.css/,
+    )
   })
 
-  test('follows the system until the header control says otherwise', async ({ page }) => {
+  test('follows the system until the footer control says otherwise', async ({ page }) => {
     await openPanel(page, { appearance: 'auto' })
     const html = page.locator('html')
     await expect(html).not.toHaveClass(/dark/)
 
-    const control = page.locator('header').getByRole('button', { name: 'appearance switcher' })
+    const control = page.locator('footer').getByRole('button', { name: 'appearance switcher' })
     await expect(control).toBeVisible()
-    const box = await control.boundingBox()
-    expect(box?.width).toBe(32)
-    expect(box?.height).toBe(32)
-
-    // The bulb sits after the wordmark and before the menu.
-    const wordmarkBox = await page.getByRole('heading', { level: 1 }).boundingBox()
-    const menuBox = await page.getByRole('link', { name: 'Source', exact: true }).boundingBox()
-    expect(box?.x ?? 0).toBeGreaterThanOrEqual((wordmarkBox?.x ?? 0) + (wordmarkBox?.width ?? 0))
-    expect(box?.x ?? 0).toBeLessThan(menuBox?.x ?? 0)
+    await expect(control).toHaveCSS('width', '48px')
+    await expect(control).toHaveCSS('height', '48px')
 
     await control.click()
     await expect(html).toHaveClass(/dark/)
@@ -85,6 +83,39 @@ test.describe('the panel', () => {
     // The right click goes back to following the system, which is light here.
     await control.click({ button: 'right' })
     await expect(html).not.toHaveClass(/dark/)
+  })
+
+  test('remembers every setting across a reload', async ({ page }) => {
+    await openPanel(page)
+
+    // One change of every kind, through the interface.
+    await page.getByRole('button', { name: 'Use the Ember screensaver' }).click()
+    await page.getByRole('button', { name: /^Deep/ }).click()
+    await page.getByLabel(/Rotate the modes/).check()
+    await page.getByLabel(/Shift the pixels/).check()
+    await page.getByLabel(/Show seconds/).check()
+    await page.getByLabel(/Warm palette/).uncheck()
+    await page.getByLabel(/Fullscreen on start/).check()
+    await page.getByLabel(/Media hold/).uncheck()
+    await page.getByLabel(/Mini window/).check()
+    await page.getByRole('button', { name: 'One more agent' }).click()
+    await page.locator('footer').getByRole('button', { name: 'appearance switcher' }).click()
+
+    await page.reload()
+
+    await expect(page.locator('.mode-tile[data-active="true"]')).toContainText('Ember')
+    await expect(page.getByRole('button', { name: /^Deep/ })).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByLabel(/Rotate the modes/)).toBeChecked()
+    await expect(page.getByLabel(/Shift the pixels/)).toBeChecked()
+    await expect(page.getByLabel(/Show seconds/)).toBeChecked()
+    await expect(page.getByLabel(/Warm palette/)).not.toBeChecked()
+    await expect(page.getByLabel(/Fullscreen on start/)).toBeChecked()
+    await expect(page.getByLabel(/Media hold/)).not.toBeChecked()
+    await expect(page.getByLabel(/Mini window/)).toBeChecked()
+    await expect(page.locator('.field-row').filter({ hasText: 'Agents on the stage' })).toContainText(
+      '4',
+    )
+    await expect(page.locator('html')).toHaveClass(/dark/)
   })
 
   test('offers every screensaver, with the clock chosen', async ({ page }) => {
@@ -126,10 +157,10 @@ test.describe('the panel', () => {
 
   test('explains the honest limits', async ({ page }) => {
     await openPanel(page)
-    await page.getByText('It still sleeps. What do I change?').click()
-    await expect(page.getByText(/powercfg \/requests/)).toBeVisible()
-    await page.getByText('Why does the wake lock go away when I switch tabs?').click()
-    await expect(page.getByText(/only granted to a document that is on screen/)).toBeVisible()
+    await page.getByText('It still sleeps.').click()
+    await expect(page.getByText(/powercfg \/change monitor-timeout-ac 0/)).toBeVisible()
+    await page.getByText('Why does the lock go when I switch tabs?').click()
+    await expect(page.getByText(/only grant it to a page that is on screen/)).toBeVisible()
   })
 
   test('keeps the console clean', async ({ page }) => {

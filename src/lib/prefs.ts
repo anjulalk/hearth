@@ -2,6 +2,9 @@ import { clampAgents, isDimTier, isModeId, type DimTier, type ModeId } from './p
 
 export type Appearance = 'auto' | 'light' | 'dark'
 
+/** What to put on the screen while the watch runs. */
+export type WhileRunning = 'screensaver' | 'panel'
+
 export interface Prefs {
   mode: ModeId
   rotate: boolean
@@ -10,10 +13,17 @@ export interface Prefs {
   seconds: boolean
   hour24: boolean
   warm: boolean
-  fullscreen: boolean
+  /**
+   * Off by default: starting the watch must not take the screen. The field is
+   * named for what it does rather than reusing the old `fullscreen`, so a stored
+   * `true` from before this default cannot put anyone back in fullscreen.
+   */
+  fullscreenOnStart: boolean
   media: boolean
   miniWindow: boolean
   agents: number
+  /** The regular screen is always one click away. */
+  whileRunning: WhileRunning
 }
 
 export interface StorageLike {
@@ -31,7 +41,7 @@ const BOOLEAN_KEYS = [
   'seconds',
   'hour24',
   'warm',
-  'fullscreen',
+  'fullscreenOnStart',
   'media',
   'miniWindow',
 ] as const
@@ -62,10 +72,11 @@ export function defaultPrefs(): Prefs {
     seconds: false,
     hour24: !usesTwelveHourClock(),
     warm: true,
-    fullscreen: true,
+    fullscreenOnStart: false,
     media: true,
     miniWindow: false,
     agents: 3,
+    whileRunning: 'screensaver',
   }
 }
 
@@ -92,6 +103,9 @@ export function readPrefs(store: StorageLike | undefined = localStore()): Prefs 
 
   if (typeof record.mode === 'string' && isModeId(record.mode)) prefs.mode = record.mode
   if (typeof record.dim === 'string' && isDimTier(record.dim)) prefs.dim = record.dim
+  if (record.whileRunning === 'panel' || record.whileRunning === 'screensaver') {
+    prefs.whileRunning = record.whileRunning
+  }
   if (typeof record.agents === 'number') prefs.agents = clampAgents(record.agents)
   for (const key of BOOLEAN_KEYS) {
     const value = record[key]

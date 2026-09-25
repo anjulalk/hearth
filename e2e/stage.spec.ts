@@ -27,8 +27,54 @@ test.describe('the watch', () => {
     await expect(page.locator('.ss-time')).toContainText('21:04')
     // The browser is asked for the real thing.
     expect(await page.evaluate(() => 'wakeLock' in navigator)).toBe(true)
+    // And it does not take the screen: fullscreen is an explicit choice.
+    expect(await page.evaluate(() => document.fullscreenElement === null)).toBe(true)
     // The controls stay out of the way until the pointer moves.
     await expect(page.locator('.stage-bar')).not.toHaveClass(/is-visible/)
+  })
+
+  test('picks a screensaver from the split button', async ({ page }) => {
+    await openPanel(page, { stub: true })
+    await startWatch(page)
+    await showStageBar(page)
+
+    const split = page.locator('.split')
+    await expect(split.locator('.split-main')).toHaveText('Clock')
+
+    await split.getByRole('button', { name: 'Choose a screensaver' }).click()
+    await expect(page.getByRole('listbox', { name: 'Screensavers' })).toBeVisible()
+    await page.getByRole('option', { name: 'Stars' }).click()
+    await expect(page.locator('.ss-field')).toBeVisible()
+    await expect(split.locator('.split-main')).toHaveText('Stars')
+    await expect(page.getByRole('listbox', { name: 'Screensavers' })).toHaveCount(0)
+
+    // The name half advances without the list.
+    await split.locator('.split-main').click()
+    await expect(split.locator('.split-main')).toHaveText('Agents')
+  })
+
+  test('keeps the regular screen one click away while it runs', async ({ page }) => {
+    await openPanel(page, { stub: true })
+    await startWatch(page)
+    await showStageBar(page)
+
+    await page.getByRole('button', { name: 'Panel', exact: true }).click()
+    await expect(page.locator('.stage')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Screen lock held' })).toBeVisible()
+    await expect(page.getByText('Kept watch')).toBeVisible()
+    await expect(page).toHaveTitle(/· hearth$/)
+
+    await page.getByRole('button', { name: 'Screensaver', exact: true }).click()
+    await expect(page.locator('.stage')).toBeVisible()
+  })
+
+  test('brings a running watch back after a reload', async ({ page }) => {
+    await openPanel(page, { stub: true, keepSession: true })
+    await startWatch(page)
+    await page.reload()
+    await page.locator('.stage').waitFor()
+    await expect(page).toHaveTitle(/· hearth$/)
+    expect(await page.evaluate(() => localStorage.getItem('hearth.session'))).toBeTruthy()
   })
 
   test('keeps a media stream alive, with a video and an audio track', async ({ page }) => {
@@ -113,18 +159,23 @@ test.describe('the watch', () => {
     await startWatch(page)
     await showStageBar(page)
 
-    const bar = page.locator('.stage-bar button')
-    await expect(bar.nth(1)).toHaveText('Clock')
+    const bar = page.locator('.stage-bar')
+    await expect(bar.locator('.split-main')).toHaveText('Clock')
 
     await page.keyboard.press('m')
-    await expect(bar.nth(1)).toHaveText('Ember')
+    await expect(bar.locator('.split-main')).toHaveText('Ember')
     await expect(page.locator('.ss-ember')).toBeVisible()
 
     await page.keyboard.press('d')
-    await expect(bar.nth(2)).toHaveText('Dim deep')
+    await expect(bar.getByRole('button', { name: 'Dim deep' })).toBeVisible()
+
+    await page.keyboard.press('v')
+    await expect(page.locator('.stage')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'Screen lock held' })).toBeVisible()
 
     await page.keyboard.press(' ')
     await expect(page.locator('.stage')).toHaveCount(0)
+    await expect(page.getByText('Not holding the screen on')).toBeVisible()
   })
 
   test('previews a screensaver without holding anything', async ({ page }) => {

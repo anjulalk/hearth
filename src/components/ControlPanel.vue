@@ -1,16 +1,32 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import AppearanceToggle from './AppearanceToggle.vue'
 import BookmarkPanel from './BookmarkPanel.vue'
 import EmberMark from './EmberMark.vue'
 import FaqPanel from './FaqPanel.vue'
 import SettingsPanel from './SettingsPanel.vue'
 import StatusPanel from './StatusPanel.vue'
+import { elapsedShort } from '@/lib/format'
+import { useStore } from '@/lib/store'
 
-const MENU: ReadonlyArray<{ label: string; href: string }> = [
-  { label: 'Source', href: 'https://github.com/anjulalk/hearth' },
-  { label: 'Design system', href: 'https://anjula.dev/design/tokens.css' },
-  { label: 'anjula.dev', href: 'https://anjula.dev' },
-]
+const store = useStore()
+const { awakeState, dayMs, elapsedMs, hold, running } = store
+
+/** The header's one glance: is it holding, and for how long. */
+const status = computed(() => {
+  if (!running.value) {
+    return dayMs.value > 0 ? `idle · today ${elapsedShort(dayMs.value)}` : 'idle'
+  }
+  const kept = elapsedShort(elapsedMs.value)
+  switch (hold.value.level) {
+    case 'screen':
+      return `on watch · ${kept}`
+    case 'media':
+      return `${awakeState.visible ? 'media hold' : 'in the background'} · ${kept}`
+    default:
+      return `weak hold · ${kept}`
+  }
+})
 </script>
 
 <template>
@@ -20,36 +36,24 @@ const MENU: ReadonlyArray<{ label: string; href: string }> = [
   <div class="shell pt-6 sm:pt-10">
     <header class="pb-6 sm:pb-10">
       <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-        <div class="flex w-full items-center gap-2.5 sm:w-auto">
-          <h1
-            class="ui flex items-center gap-2.5 text-xl leading-[1.2] font-semibold tracking-[-0.011em] text-ink"
-          >
-            <EmberMark :size="26" />
-            hearth
-          </h1>
-          <AppearanceToggle />
-        </div>
-        <nav class="flex flex-wrap items-center gap-x-5 gap-y-1 sm:gap-x-7">
-          <a
-            v-for="item in MENU"
-            :key="item.href"
-            class="ui text-sm leading-7 font-medium text-ink transition-colors hover:text-clay"
-            :href="item.href"
-            >{{ item.label }}</a
-          >
-        </nav>
+        <h1
+          class="ui flex w-full items-center gap-2.5 text-xl leading-[1.2] font-semibold tracking-[-0.011em] text-ink sm:w-auto"
+        >
+          <span>hearth</span>
+          <EmberMark :size="26" />
+        </h1>
+        <p class="header-status" :data-tone="running ? hold.tone : 'off'" :title="hold.detail">
+          <span class="dot" />{{ status }}
+        </p>
       </div>
     </header>
 
     <p class="intro-lede text-lg text-ink">
-      hearth keeps a screen on while a long job runs, so a display that went idle never costs you
-      the last five minutes of work.
+      hearth keeps a screen awake while agents work, and keeps it true black while they do.
     </p>
     <p class="intro-support mt-5 max-w-2xl text-mute">
-      It holds the browser's screen wake lock and keeps a quiet media stream alive, so a tab in the
-      background is not frozen while the agents work, and it puts a true black screensaver on the
-      display in between. A page cannot change a power plan, so the panel says which hold is doing
-      the work rather than claiming the screen cannot sleep.
+      Every screensaver is a handful of lit pixels, so an OLED panel leaves the rest off. Two holds
+      keep the display awake: the browser's screen wake lock, and a quiet media stream.
     </p>
 
     <main class="mt-12 grid gap-4">
@@ -60,18 +64,32 @@ const MENU: ReadonlyArray<{ label: string; href: string }> = [
     </main>
 
     <footer class="footer ui mt-12 py-10 text-sm text-soft">
-      <p>
-        Built by
-        <a
-          class="underline-offset-2 transition-colors hover:text-ink hover:underline"
-          href="https://anjula.dev"
-          >Anjula Karunarathne</a
-        >.
-      </p>
-      <p class="mt-1 text-xs">
-        Nothing leaves the page: no analytics, no account, and nothing to fetch after the files
-        load.
-      </p>
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p>
+            Built by
+            <a
+              class="underline-offset-2 transition-colors hover:text-ink hover:underline"
+              href="https://anjula.dev"
+              >Anjula Karunarathne</a
+            >.
+          </p>
+          <p class="mt-1 text-xs">
+            <a
+              class="underline-offset-2 transition-colors hover:text-ink hover:underline"
+              href="https://github.com/anjulalk/hearth"
+              >Source</a
+            >
+            <span class="mx-1.5">·</span>
+            <a
+              class="underline-offset-2 transition-colors hover:text-ink hover:underline"
+              href="https://anjula.dev/design/tokens.css"
+              >Design system</a
+            >
+          </p>
+        </div>
+        <AppearanceToggle />
+      </div>
     </footer>
   </div>
 </template>

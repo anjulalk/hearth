@@ -12,10 +12,11 @@ export const PREFERENCES = {
   seconds: false,
   hour24: true,
   warm: true,
-  fullscreen: false,
+  fullscreenOnStart: false,
   media: true,
   miniWindow: false,
   agents: 3,
+  whileRunning: 'screensaver',
 }
 
 export interface PanelOptions {
@@ -23,6 +24,8 @@ export interface PanelOptions {
   prefs?: Partial<typeof PREFERENCES>
   /** `light` unless a test wants the panel to start out following the system. */
   appearance?: 'auto' | 'light' | 'dark'
+  /** Keep a stored watch, for the tests that check it comes back. */
+  keepSession?: boolean
   /**
    * A wake lock and a battery that always answer the same way. Screenshots need
    * that; the behaviour tests use the real browser instead. `deny-lock` is a
@@ -41,13 +44,18 @@ export async function openPanel(page: Page, options: PanelOptions = {}): Promise
   const prefs = { ...PREFERENCES, ...options.prefs }
   const appearance = options.appearance ?? 'light'
   await page.addInitScript(
-    ({ state, mode }: { state: typeof prefs; mode: string }) => {
-      window.localStorage.setItem('hearth.prefs', JSON.stringify(state))
-      window.localStorage.setItem('hearth.appearance', mode)
-      window.localStorage.removeItem('hearth.session')
+    ({ state, mode, keep }: { state: typeof prefs; mode: string; keep: boolean }) => {
+      // Seed once per tab, so a test that changes a setting can reload and see
+      // it come back instead of having the defaults written over it.
+      if (window.sessionStorage.getItem('hearth.test.seeded') !== '1') {
+        window.localStorage.setItem('hearth.prefs', JSON.stringify(state))
+        window.localStorage.setItem('hearth.appearance', mode)
+        window.sessionStorage.setItem('hearth.test.seeded', '1')
+      }
       window.localStorage.removeItem('hearth.day')
+      if (!keep) window.localStorage.removeItem('hearth.session')
     },
-    { state: prefs, mode: appearance },
+    { state: prefs, mode: appearance, keep: options.keepSession === true },
   )
 
   if (options.stub) {

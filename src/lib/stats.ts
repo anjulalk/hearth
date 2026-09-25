@@ -48,31 +48,42 @@ export function addWatch(ms: number, store: StorageLike | undefined, now = new D
   return next
 }
 
+export interface SessionState {
+  /** When this watch started counting. */
+  startedAt: number
+  /** The last moment the page was known to be up, so a gap can be seen. */
+  seenAt: number
+}
+
 /**
- * A reload should not restart the clock. The session's start is kept so that
- * opening hearth again from a bookmark continues the watch that is running,
- * and so `?start=1` stays safe to click twice.
+ * A reload should not restart the clock, and a browser that was closed should
+ * not silently end the watch: the session is kept, and `seenAt` is touched
+ * whenever the page goes away so a long gap can be told from a quick refresh.
  */
-export function readSession(store: StorageLike | undefined, now = Date.now()): number | null {
+export function readSession(store: StorageLike | undefined, now = Date.now()): SessionState | null {
   if (!store) return null
   try {
     const raw = store.getItem(SESSION_KEY)
     if (!raw) return null
     const data: unknown = JSON.parse(raw)
     if (typeof data !== 'object' || data === null) return null
-    const startedAt = (data as Record<string, unknown>).startedAt
-    if (typeof startedAt !== 'number' || !Number.isFinite(startedAt)) return null
-    if (startedAt > now || now - startedAt > 7 * 24 * 3600_000) return null
-    return startedAt
+    const record = data as Record<string, unknown>
+    const startedAt = record.startedAt
+    const seenAt = typeof record.seenAt === 'number' ? record.seenAt : startedAt
+    if (typeof startedAt !== 'number' || typeof seenAt !== 'number') return null
+    if (!Number.isFinite(startedAt) || !Number.isFinite(seenAt)) return null
+    if (startedAt > now || seenAt > now) return null
+    if (now - startedAt > 7 * 24 * 3600_000) return null
+    return { startedAt, seenAt }
   } catch {
     return null
   }
 }
 
-export function writeSession(startedAt: number, store: StorageLike | undefined): void {
+export function writeSession(session: SessionState, store: StorageLike | undefined): void {
   if (!store) return
   try {
-    store.setItem(SESSION_KEY, JSON.stringify({ startedAt }))
+    store.setItem(SESSION_KEY, JSON.stringify(session))
   } catch {
     /* see writePrefs */
   }

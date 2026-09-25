@@ -7,10 +7,9 @@
 [![live](https://img.shields.io/badge/live-hearth.anjula.dev-5f5a51?labelColor=44403a&style=flat-square)](https://hearth.anjula.dev)
 [![license](https://img.shields.io/badge/license-MIT-44403a?style=flat-square)](LICENSE)
 
-**hearth** keeps a screen on while a long job runs, and puts something calm on it while
-you wait. It is a web app: no install, no account, no server. A screen wake lock, an
-inaudible media stream, and a true black screensaver with a clock, an ember, a star
-field, or a tally of the agents at work.
+**hearth** keeps a screen awake while a long job runs, and keeps it **true black** while it waits.
+Every screensaver is a handful of lit pixels, so an OLED panel leaves the rest off. No install, no
+account, no server: a screen wake lock, an inaudible media stream, and five dark screensavers.
 
 Live at <https://hearth.anjula.dev>. One bookmark starts the whole thing.
 
@@ -79,11 +78,19 @@ recurring timer stops entirely while the tab is hidden.
 | Key | What it does |
 | --- | --- |
 | `Space` | start or stop the watch |
+| `V` | the screensaver, or the regular screen |
 | `M` | next screensaver |
 | `D` | next dim step |
 | `F` | fullscreen |
 | `N` | mini window |
 | `Esc` | leave fullscreen, or a preview |
+
+The stage bar carries a split button for the screensaver: the name advances it, the chevron opens
+the list of five. Next to it, **Screensaver / Panel** keeps the regular screen one click away while
+the watch runs, so the settings are still reachable without stopping.
+
+Settings live in local storage, so they come back with the tab. So does a running watch: reload the
+page, or reopen it after the browser was closed, and hearth picks up where it left off.
 
 ## Commands
 

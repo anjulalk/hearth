@@ -5,7 +5,7 @@ import type { DimTier } from '@/lib/params'
 import { useStore } from '@/lib/store'
 
 const store = useStore()
-const { prefs, mode, running } = store
+const { prefs, mode } = store
 
 const DIMS: ReadonlyArray<{ id: DimTier; label: string; blurb: string }> = [
   { id: 'off', label: 'Off', blurb: 'stays bright' },
@@ -19,45 +19,17 @@ type BoolKey =
   | 'seconds'
   | 'hour24'
   | 'warm'
-  | 'fullscreen'
+  | 'fullscreenOnStart'
   | 'media'
 
 const TOGGLES: ReadonlyArray<{ key: BoolKey; title: string; blurb: string }> = [
-  {
-    key: 'rotate',
-    title: 'Rotate the modes',
-    blurb: 'Walks through every screensaver every ten minutes, so one pattern never sits on the same pixels all night.',
-  },
-  {
-    key: 'pixelShift',
-    title: 'Shift the pixels',
-    blurb: 'Nudges the whole screen a few pixels every two minutes. Cheap insurance for a panel that is on for hours.',
-  },
-  {
-    key: 'seconds',
-    title: 'Show seconds',
-    blurb: 'One more text update every second. Off keeps the clock on the minute and the screen on fewer changes.',
-  },
-  {
-    key: 'hour24',
-    title: '24-hour clock',
-    blurb: 'Use 21:04 instead of 9:04 PM.',
-  },
-  {
-    key: 'warm',
-    title: 'Warm palette',
-    blurb: 'Amber instead of ivory, so the small hours are easier on the eyes and the panel.',
-  },
-  {
-    key: 'fullscreen',
-    title: 'Go fullscreen on start',
-    blurb: 'Ignored while the mini window is on, because the mini window is the stronger hold.',
-  },
-  {
-    key: 'media',
-    title: 'Media hold',
-    blurb: 'The inaudible stream that keeps a hidden tab out of the browser freezer. Turning it off leaves only the screen lock.',
-  },
+  { key: 'rotate', title: 'Rotate the modes', blurb: 'A different screen every ten minutes.' },
+  { key: 'pixelShift', title: 'Shift the pixels', blurb: 'Nudges the screen a few pixels every two minutes.' },
+  { key: 'seconds', title: 'Show seconds', blurb: 'Update the clock every second.' },
+  { key: 'hour24', title: '24-hour clock', blurb: '21:04 instead of 9:04 PM.' },
+  { key: 'warm', title: 'Warm palette', blurb: 'Amber instead of ivory.' },
+  { key: 'fullscreenOnStart', title: 'Fullscreen on start', blurb: 'Take the screen when the watch starts.' },
+  { key: 'media', title: 'Media hold', blurb: 'The quiet stream that keeps a background tab awake.' },
 ]
 
 function setBool(key: BoolKey, event: Event): void {
@@ -75,9 +47,7 @@ const bool = (key: BoolKey): boolean => prefs[key]
   <section class="card rise p-5 sm:p-6">
     <h2 class="text-xl text-ink">Screensaver</h2>
     <p class="mt-1 max-w-[58ch] text-base leading-snug text-mute">
-      The stage stays true black, so an OLED panel leaves those pixels off. Every mode is a handful
-      of lit pixels and animations that only move or fade, which the compositor can do without the
-      processor.
+      True black, so an OLED panel leaves those pixels off.
     </p>
 
     <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -114,8 +84,7 @@ const bool = (key: BoolKey): boolean => prefs[key]
         <span>
           <span class="ui text-base font-medium text-ink">Agents on the stage</span>
           <span class="mt-0.5 block max-w-[54ch] text-sm leading-snug text-soft">
-            How many jobs the Agents screensaver counts. It is a tally for the story you are telling
-            yourself, not a connection to anything.
+            How many jobs the tally counts.
           </span>
         </span>
         <span class="flex items-center gap-2">
@@ -140,9 +109,5 @@ const bool = (key: BoolKey): boolean => prefs[key]
         />
       </label>
     </div>
-
-    <p v-if="running" class="mt-4 text-sm leading-snug text-soft">
-      Changes apply to the screensaver that is already running.
-    </p>
   </section>
 </template>

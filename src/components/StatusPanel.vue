@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import ViewSwitch from './ViewSwitch.vue'
 import type { MediaState, WakeLockState } from '@/lib/awake'
 import { elapsed, elapsedShort, percent } from '@/lib/format'
 import { useStore } from '@/lib/store'
@@ -84,34 +85,30 @@ function setMiniWindow(event: Event): void {
       </div>
     </div>
 
-    <dl
+    <div
       v-if="running"
-      class="mt-5 grid grid-cols-2 gap-3 border-t border-hair pt-4 sm:grid-cols-4"
+      class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-hair pt-4"
     >
-      <div>
-        <dt class="label text-soft">On watch</dt>
-        <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(elapsedMs) }}</dd>
-      </div>
-      <div>
-        <dt class="label text-soft">Screen lock</dt>
-        <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(lockedMs) }}</dd>
-      </div>
-      <div>
-        <dt class="label text-soft">In the background</dt>
-        <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(backgroundMs) }}</dd>
-      </div>
-      <div>
-        <dt class="label text-soft">Today</dt>
-        <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(dayMs) }}</dd>
-      </div>
-    </dl>
-
-    <p
-      v-else-if="dayMs > 0"
-      class="mt-4 border-t border-hair pt-4 text-sm leading-snug text-soft"
-    >
-      Kept the screen on for <span class="num text-ink">{{ elapsed(dayMs) }}</span> today.
-    </p>
+      <dl class="flex flex-wrap gap-x-6 gap-y-2">
+        <div>
+          <dt class="label text-soft">Kept watch</dt>
+          <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(elapsedMs) }}</dd>
+        </div>
+        <div>
+          <dt class="label text-soft">Screen lock</dt>
+          <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(lockedMs) }}</dd>
+        </div>
+        <div>
+          <dt class="label text-soft">In the background</dt>
+          <dd class="num mt-0.5 text-lg text-ink">{{ elapsedShort(backgroundMs) }}</dd>
+        </div>
+        <div>
+          <dt class="label text-soft">Today</dt>
+          <dd class="num mt-0.5 text-lg text-ink">{{ elapsed(dayMs) }}</dd>
+        </div>
+      </dl>
+      <ViewSwitch tone="paper" />
+    </div>
 
     <div class="mt-4 flex flex-wrap items-center gap-2">
       <span class="chip" :data-state="lockState"><span class="dot" />wake lock {{ lockLabel }}</span>
@@ -135,8 +132,8 @@ function setMiniWindow(event: Event): void {
         <span class="mt-0.5 block max-w-[54ch] text-sm leading-snug text-soft">
           {{
             miniSupported
-              ? 'A small always-on-top window that holds its own screen lock while you work in the tab running your agents. It opens with the watch and closes with it.'
-              : 'A second always-on-top window would hold the screen lock while you work elsewhere, but this browser has no document picture-in-picture, so the media hold is the fallback. Chrome and Edge have it.'
+              ? 'A small window that holds its own lock while you work elsewhere.'
+              : 'This browser has no document picture-in-picture, so the media hold does that work. Chrome and Edge have it.'
           }}
         </span>
       </span>
@@ -148,12 +145,5 @@ function setMiniWindow(event: Event): void {
         @change="setMiniWindow"
       />
     </label>
-
-    <p class="mt-4 text-sm leading-snug text-soft">
-      While it runs, <span class="num">M</span> changes the screensaver,
-      <span class="num">D</span> cycles the dim step, <span class="num">F</span> toggles
-      fullscreen, <span class="num">N</span> toggles the mini window, and
-      <span class="num">Space</span> stops the watch.
-    </p>
   </section>
 </template>

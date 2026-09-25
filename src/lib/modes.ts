@@ -15,35 +15,35 @@ export interface ModeDef {
 const CLOCK: ModeDef = {
   id: 'clock',
   name: 'Clock',
-  blurb: 'The time, the date, and how long the watch has been running.',
+  blurb: 'The time, the date, and the watch length.',
   tickMs: 1000,
 }
 
 const EMBER: ModeDef = {
   id: 'ember',
   name: 'Ember',
-  blurb: 'One small fire, breathing. The fewest lit pixels that still look alive.',
+  blurb: 'One small fire, breathing.',
   tickMs: 5000,
 }
 
 const STARS: ModeDef = {
   id: 'stars',
   name: 'Stars',
-  blurb: 'Dim points drifting upward in three slow layers.',
+  blurb: 'Dim points, drifting upward.',
   tickMs: 5000,
 }
 
 const AGENTS: ModeDef = {
   id: 'agents',
   name: 'Agents',
-  blurb: 'A tally of the jobs running in your other tabs, each one breathing.',
+  blurb: 'A tally of the jobs at work.',
   tickMs: 1000,
 }
 
 const MINIMAL: ModeDef = {
   id: 'minimal',
   name: 'Minimal',
-  blurb: 'A dot and the elapsed time. Black almost everywhere.',
+  blurb: 'A dot and the elapsed time.',
   tickMs: 5000,
 }
 

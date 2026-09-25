@@ -12,14 +12,24 @@ import {
   writePrefs,
   type Appearance,
   type Prefs,
+  type WhileRunning,
 } from './prefs'
-import { addWatch, clearSession, readSession, readWatch, writeSession, type WatchDay } from './stats'
+import {
+  addWatch,
+  clearSession,
+  readSession,
+  readWatch,
+  writeSession,
+  type WatchDay,
+} from './stats'
 import { setFavicon } from './favicon'
 import { useBattery } from './battery'
 import { MiniWindow, type MiniReport } from './mini'
 import { useNow } from './useNow'
 
 const TITLE = 'Keep your screen on while AI agents run | hearth'
+/** A watch that was let go more than this long ago starts again, not resumes. */
+const FRESH_MS = 5 * 60_000
 const DIM_ORDER: readonly DimTier[] = ['gentle', 'deep', 'off']
 /** Small offsets, on purpose: a panel notices a pattern that never moves. */
 const SHIFT_STEPS: ReadonlyArray<readonly [number, number]> = [
@@ -44,8 +54,7 @@ export function createStore() {
   if (url.rotate !== undefined) prefs.rotate = url.rotate
   if (url.agents !== undefined) prefs.agents = clampAgents(url.agents)
 
-  const awakeState = reactive<AwakeState>({
-    running: false,
+  const awakeState = reactive<AwakeState>({    running: false,
     startedAt: null,
     wakeLock: 'idle',
     wakeLockError: null,
@@ -80,6 +89,29 @@ export function createStore() {
   const mini = new MiniWindow({ onReport: (report) => Object.assign(miniReport, report) })
 
   const running = computed(() => awakeState.running)
+
+  /** A watch that was running when the page went away comes back by itself. */
+  const stored = readSession(localStore())
+  const canRestore = stored !== null && Date.now() - stored.seenAt <= FRESH_MS
+
+  /** The regular screen is one click from the stage, and back again. */
+  const showStage = computed(
+    () => preview.value || (awakeState.running && prefs.whileRunning === 'screensaver'),
+  )
+
+  function setView(value: WhileRunning): void {
+    prefs.whileRunning = value
+  }
+
+  /** A menu that is open keeps the bar up, however still the mouse is. */
+  const controlsPinned = ref(false)
+  function pinControls(pinned: boolean): void {
+    controlsPinned.value = pinned
+    if (pinned) {
+      controlsVisible.value = true
+      if (hideTimer !== undefined) clearTimeout(hideTimer)
+    }
+  }
 
   const hold = computed<HoldStatus>(() =>
     holdStatus({
@@ -250,22 +282,33 @@ export function createStore() {
   }
 
   /**
-   * `?start=1` is safe to click twice: the session's start is kept, so a
-   * bookmark that lands while the watch is already running continues it.
+   * `?start=1` is safe to click twice, a reload continues the watch, and a page
+   * that was closed mid-watch brings it back. The session's start is kept when
+   * the gap is short, and the clock starts over when it is not.
    */
-  async function start(origin: 'user' | 'auto' = 'user'): Promise<void> {
+  async function start(origin: 'user' | 'auto' | 'restore' = 'user'): Promise<void> {
     if (awake.isRunning()) return
-    const startedAt = readSession(localStore()) ?? Date.now()
-    writeSession(startedAt, localStore())
+    const now = Date.now()
+    const session = readSession(localStore())
+    const resume = origin !== 'user' && session !== null && now - session.seenAt <= FRESH_MS
+    const startedAt = resume && session ? session.startedAt : now
+    writeSession({ startedAt, seenAt: now }, localStore())
     preview.value = false
-    lastActivity.value = Date.now()
+    lastActivity.value = now
     controlsVisible.value = false
     await awake.start(startedAt)
     if (origin !== 'user') return
     // The mini window is the stronger hold, so it replaces fullscreen rather
-    // than fighting it.
+    // than fighting it. Nothing takes the screen unless it was asked to.
     if (prefs.miniWindow && MiniWindow.supported()) await openMini()
-    else if (prefs.fullscreen) await enterFullscreen()
+    else if (prefs.fullscreenOnStart) await enterFullscreen()
+  }
+
+  /** Called when the page goes away, so a long gap can be told from a refresh. */
+  function touchWatch(): void {
+    if (!awake.isRunning()) return
+    const session = readSession(localStore())
+    if (session) writeSession({ startedAt: session.startedAt, seenAt: Date.now() }, localStore())
   }
 
   async function stop(): Promise<void> {
@@ -329,6 +372,8 @@ export function createStore() {
     window.addEventListener('wheel', markActivity, { passive: true })
     window.addEventListener('touchstart', markActivity, { passive: true })
     window.addEventListener('keydown', markActivity)
+    window.addEventListener('pagehide', touchWatch)
+    document.addEventListener('visibilitychange', touchWatch)
     document.addEventListener('fullscreenchange', onFullscreenChange)
     darkQuery.addEventListener('change', onSystemAppearance)
   }
@@ -344,13 +389,14 @@ export function createStore() {
     window.removeEventListener('wheel', markActivity)
     window.removeEventListener('touchstart', markActivity)
     window.removeEventListener('keydown', markActivity)
+    window.removeEventListener('pagehide', touchWatch)
+    document.removeEventListener('visibilitychange', touchWatch)
     document.removeEventListener('fullscreenchange', onFullscreenChange)
     darkQuery.removeEventListener('change', onSystemAppearance)
     if (shiftTimer !== undefined) clearInterval(shiftTimer)
     if (hideTimer !== undefined) clearTimeout(hideTimer)
     mini.close()
   }
-
   watch(prefs, () => writePrefs(prefs))
 
   watch(
@@ -391,6 +437,8 @@ export function createStore() {
     appearance,
     dark,
     autoStart: url.start === true,
+    canRestore,
+    controlsPinned,
     awakeState,
     battery,
     backgroundMs,
@@ -420,6 +468,9 @@ export function createStore() {
     setMode: (value: ModeId) => {
       prefs.mode = value
     },
+    setView,
+    pinControls,
+    showStage,
     showControls,
     start,
     startPreview,

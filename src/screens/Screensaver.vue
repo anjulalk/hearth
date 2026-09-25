@@ -5,7 +5,8 @@ import ClockScreen from './ClockScreen.vue'
 import EmberScreen from './EmberScreen.vue'
 import MinimalScreen from './MinimalScreen.vue'
 import StarsScreen from './StarsScreen.vue'
-import { modeDef } from '@/lib/modes'
+import ModeSplitButton from '@/components/ModeSplitButton.vue'
+import ViewSwitch from '@/components/ViewSwitch.vue'
 import { percent } from '@/lib/format'
 import { useStore } from '@/lib/store'
 
@@ -18,19 +19,8 @@ const SCREENS = {
 } as const
 
 const store = useStore()
-const {
-  prefs,
-  mode,
-  running,
-  hold,
-  dimTier,
-  shift,
-  now,
-  elapsedMs,
-  controlsVisible,
-  fullscreen,
-  battery,
-} = store
+const { prefs, mode, running, hold, dimTier, shift, now, elapsedMs, controlsVisible, fullscreen, battery } =
+  store
 
 /** A watch held on battery, overnight, is the case worth warning about. */
 const batteryLow = computed(
@@ -38,13 +28,7 @@ const batteryLow = computed(
 )
 
 const screen = computed(() => SCREENS[mode.value])
-const modeName = computed(() => modeDef(mode.value).name)
 const shiftStyle = computed(() => ({ '--sx': `${shift.x}px`, '--sy': `${shift.y}px` }))
-
-/** A preview is dismissed by the click that proves nobody is holding anything. */
-function onPointerDown(): void {
-  if (!running.value) store.endPreview()
-}
 const screenProps = computed(() => ({
   now: now.value,
   elapsedMs: elapsedMs.value,
@@ -54,6 +38,11 @@ const screenProps = computed(() => ({
   holdLevel: running.value ? hold.value.level : ('off' as const),
   note: running.value ? hold.value.note : 'preview · nothing held',
 }))
+
+/** A preview is dismissed by the click that proves nobody is holding anything. */
+function onPointerDown(): void {
+  if (!running.value) store.endPreview()
+}
 </script>
 
 <template>
@@ -71,16 +60,13 @@ const screenProps = computed(() => ({
       <button v-else type="button" class="stage-bar-strong" @click="store.endPreview()">
         Close preview
       </button>
-      <button type="button" @click="store.cycleMode()">{{ modeName }}</button>
+      <ViewSwitch v-if="running" tone="stage" />
+      <ModeSplitButton />
       <button type="button" @click="store.cycleDim()">Dim {{ prefs.dim }}</button>
       <button type="button" @click="store.toggleFullscreen()">
         {{ fullscreen ? 'Windowed' : 'Fullscreen' }}
       </button>
-      <button
-        v-if="running && store.miniSupported"
-        type="button"
-        @click="store.toggleMini()"
-      >
+      <button v-if="running && store.miniSupported" type="button" @click="store.toggleMini()">
         {{ store.miniReport.state === 'open' ? 'Close mini' : 'Mini window' }}
       </button>
     </div>
@@ -89,7 +75,7 @@ const screenProps = computed(() => ({
       Preview only, nothing is being held. Click anywhere to go back.
     </p>
     <p v-else-if="store.awakeState.needsGesture" class="stage-hint">
-      Click anywhere once to let the quiet audio track start, so the hold survives the background.
+      Click anywhere once so the quiet audio track can start.
     </p>
 
     <div v-if="running && (hold.level !== 'screen' || batteryLow)" class="stage-marks">

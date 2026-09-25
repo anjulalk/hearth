@@ -37,7 +37,7 @@ describe('the strong hold', () => {
   it('asks for one click when the audio track is still waiting', () => {
     const status = holdStatus({ ...base, media: 'silent', needsGesture: true })
     expect(status.level).toBe('screen')
-    expect(status.detail).toContain('Click the page once')
+    expect(status.detail).toContain('Click once')
   })
 })
 
@@ -48,7 +48,7 @@ describe('the media hold', () => {
     expect(status.tone).toBe('warn')
     expect(status.title).toBe('In the background')
     expect(status.note).toBe('background · media hold')
-    expect(status.detail).toContain('released the screen lock')
+    expect(status.detail).toContain('the lock was released')
   })
 
   it('says the lock is missing when the tab is visible', () => {
@@ -70,7 +70,7 @@ describe('the weak hold', () => {
     expect(status.level).toBe('weak')
     expect(status.tone).toBe('warn')
     expect(status.note).toBe('weak hold · may be frozen')
-    expect(status.detail).toContain('Click or tap the page once')
+    expect(status.detail).toContain('Click once to let it start')
   })
 
   it('blames the setting when the media hold is off', () => {
@@ -83,7 +83,7 @@ describe('the weak hold', () => {
   it('blames the browser when the stream was blocked and no lock is held', () => {
     const status = holdStatus({ ...base, wakeLock: 'released', media: 'blocked' })
     expect(status.level).toBe('weak')
-    expect(status.detail).toContain('refused to play')
+    expect(status.detail).toContain('refused the media stream')
   })
 
   it('warns that the fallback is missing while the lock is held', () => {

@@ -59,27 +59,43 @@ describe('the day total', () => {
   })
 })
 
-describe('the session start', () => {
-  it('survives a reload', () => {
+describe('the session', () => {
+  it('round trips a start and a last seen', () => {
     const store = fakeStore()
-    writeSession(friday.getTime(), store)
-    expect(readSession(store, friday.getTime())).toBe(friday.getTime())
+    writeSession({ startedAt: friday.getTime(), seenAt: friday.getTime() }, store)
+    expect(readSession(store, friday.getTime())).toEqual({
+      startedAt: friday.getTime(),
+      seenAt: friday.getTime(),
+    })
+  })
+
+  it('carries a later seen time, which is how a gap is told from a refresh', () => {
+    const store = fakeStore()
+    writeSession({ startedAt: friday.getTime(), seenAt: friday.getTime() + 3600_000 }, store)
+    expect(readSession(store, friday.getTime() + 3600_000)?.seenAt).toBe(friday.getTime() + 3600_000)
+  })
+
+  it('treats a file written before seenAt existed as seen at its start', () => {
+    const store = fakeStore({
+      'hearth.session': JSON.stringify({ startedAt: friday.getTime() }),
+    })
+    expect(readSession(store, friday.getTime())?.seenAt).toBe(friday.getTime())
   })
 
   it('refuses a start from the future, or from a week ago', () => {
     const store = fakeStore()
-    writeSession(friday.getTime() + 60_000, store)
+    writeSession({ startedAt: friday.getTime() + 60_000, seenAt: friday.getTime() }, store)
     expect(readSession(store, friday.getTime())).toBeNull()
 
     const old = fakeStore()
-    writeSession(friday.getTime(), old)
+    writeSession({ startedAt: friday.getTime(), seenAt: friday.getTime() }, old)
     const week = friday.getTime() + 8 * 24 * 3600_000
     expect(readSession(old, week)).toBeNull()
   })
 
   it('clears', () => {
     const store = fakeStore()
-    writeSession(friday.getTime(), store)
+    writeSession({ startedAt: friday.getTime(), seenAt: friday.getTime() }, store)
     clearSession(store)
     expect(readSession(store, friday.getTime())).toBeNull()
     expect(store.dump()['hearth.session']).toBeUndefined()
