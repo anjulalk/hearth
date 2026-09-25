@@ -21,6 +21,8 @@ export const PREFERENCES = {
 export interface PanelOptions {
   query?: string
   prefs?: Partial<typeof PREFERENCES>
+  /** `light` unless a test wants the panel to start out following the system. */
+  appearance?: 'auto' | 'light' | 'dark'
   /**
    * A wake lock and a battery that always answer the same way. Screenshots need
    * that; the behaviour tests use the real browser instead. `deny-lock` is a
@@ -37,12 +39,16 @@ export interface PanelOptions {
 
 export async function openPanel(page: Page, options: PanelOptions = {}): Promise<void> {
   const prefs = { ...PREFERENCES, ...options.prefs }
-  await page.addInitScript((state: typeof prefs) => {
-    window.localStorage.setItem('hearth.prefs', JSON.stringify(state))
-    window.localStorage.setItem('hearth.appearance', 'light')
-    window.localStorage.removeItem('hearth.session')
-    window.localStorage.removeItem('hearth.day')
-  }, prefs)
+  const appearance = options.appearance ?? 'light'
+  await page.addInitScript(
+    ({ state, mode }: { state: typeof prefs; mode: string }) => {
+      window.localStorage.setItem('hearth.prefs', JSON.stringify(state))
+      window.localStorage.setItem('hearth.appearance', mode)
+      window.localStorage.removeItem('hearth.session')
+      window.localStorage.removeItem('hearth.day')
+    },
+    { state: prefs, mode: appearance },
+  )
 
   if (options.stub) {
     const mode = options.stub === true ? 'held' : options.stub

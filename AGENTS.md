@@ -58,6 +58,22 @@ first on purpose: an interface test against a stale `dist/` is worse than no tes
 - **Do not claim more than a page can do.** A page cannot change a power plan, and the
   copy says so. Keep it that way.
 
+## The shell
+
+The panel follows `DESIGN.md`'s Page shell, and the black stage is the one exception.
+
+- **Header**: the wordmark is Inter 600 at 1.25rem in `--ink`, with the mark beside it. The menu
+  is Inter 500 at 0.875rem, 1.75rem between items, `--clay` on hover. `padding-block` 1.5rem,
+  2.5rem from 640px. It wraps on a phone, the brand on its own line and the menu beneath it.
+- **Intro**: a lede in `--ink` at 1.125rem on a 1.75rem line, then a supporting line in
+  `--ink-700`, `margin-top` 1.25rem, `max-width` 42rem. No eyebrow and no display headline: an
+  app intro is two lines, not a landing page.
+- **Footer**: Inter throughout, `--text-sm` in `--ink-500`, an attribution line at `--text-xs`,
+  the appearance control as a 3rem square on the right, and **no rule above it**.
+- **Accent**: never a solid fill with white text. White on `--clay` is 4.2:1 in light and about
+  2:1 on the lighter dark-mode accent, and the system's floor is 4.5:1, so a primary action is
+  clay text on a clay tint (`color-mix` at 10%, border at 45%).
+
 ## The two holds
 
 The screen wake lock is the strong one, and a browser grants it only to a document that is

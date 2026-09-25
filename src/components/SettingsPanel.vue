@@ -3,10 +3,9 @@ import ModeTile from './ModeTile.vue'
 import { MODES } from '@/lib/modes'
 import type { DimTier } from '@/lib/params'
 import { useStore } from '@/lib/store'
-import type { Appearance } from '@/lib/prefs'
 
 const store = useStore()
-const { prefs, appearance, mode, running } = store
+const { prefs, mode, running } = store
 
 const DIMS: ReadonlyArray<{ id: DimTier; label: string; blurb: string }> = [
   { id: 'off', label: 'Off', blurb: 'stays bright' },
@@ -63,11 +62,6 @@ const TOGGLES: ReadonlyArray<{ key: BoolKey; title: string; blurb: string }> = [
 
 function setBool(key: BoolKey, event: Event): void {
   prefs[key] = (event.target as HTMLInputElement).checked
-}
-
-function setAppearance(event: Event): void {
-  const value = (event.target as HTMLSelectElement).value
-  appearance.value = (value === 'light' || value === 'dark' ? value : 'auto') as Appearance
 }
 
 function stepAgents(delta: number): void {
@@ -144,20 +138,6 @@ const bool = (key: BoolKey): boolean => prefs[key]
           :checked="bool(toggle.key)"
           @change="setBool(toggle.key, $event)"
         />
-      </label>
-
-      <label class="field-row">
-        <span>
-          <span class="ui text-[0.9375rem] font-medium text-ink">Appearance</span>
-          <span class="mt-0.5 block max-w-[54ch] text-[0.875rem] leading-snug text-soft">
-            This panel follows the system by default. The stage is always black.
-          </span>
-        </span>
-        <select class="btn py-2" :value="appearance" @change="setAppearance">
-          <option value="auto">Follow the system</option>
-          <option value="light">Paper</option>
-          <option value="dark">Ink</option>
-        </select>
       </label>
     </div>
 

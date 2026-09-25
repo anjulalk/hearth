@@ -192,12 +192,24 @@ export function createStore() {
 
   // --- appearance --------------------------------------------------------
   const darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const systemDark = ref(darkQuery.matches)
+  const dark = computed(
+    () => appearance.value === 'dark' || (appearance.value === 'auto' && systemDark.value),
+  )
 
   function applyAppearance(): void {
-    const dark = appearance.value === 'dark' || (appearance.value === 'auto' && darkQuery.matches)
-    document.documentElement.classList.toggle('dark', dark)
+    document.documentElement.classList.toggle('dark', dark.value)
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (meta) meta.content = awakeState.running ? '#000000' : dark ? '#282622' : '#faf8f3'
+    if (meta) meta.content = awakeState.running ? '#000000' : dark.value ? '#282622' : '#faf8f3'
+  }
+
+  function toggleAppearance(): void {
+    appearance.value = dark.value ? 'light' : 'dark'
+  }
+
+  /** The footer control's right click: back to whatever the system says. */
+  function resetAppearance(): void {
+    appearance.value = 'auto'
   }
 
   // --- actions -----------------------------------------------------------
@@ -318,7 +330,12 @@ export function createStore() {
     window.addEventListener('touchstart', markActivity, { passive: true })
     window.addEventListener('keydown', markActivity)
     document.addEventListener('fullscreenchange', onFullscreenChange)
-    darkQuery.addEventListener('change', applyAppearance)
+    darkQuery.addEventListener('change', onSystemAppearance)
+  }
+
+  function onSystemAppearance(): void {
+    systemDark.value = darkQuery.matches
+    applyAppearance()
   }
 
   function dispose(): void {
@@ -328,7 +345,7 @@ export function createStore() {
     window.removeEventListener('touchstart', markActivity)
     window.removeEventListener('keydown', markActivity)
     document.removeEventListener('fullscreenchange', onFullscreenChange)
-    darkQuery.removeEventListener('change', applyAppearance)
+    darkQuery.removeEventListener('change', onSystemAppearance)
     if (shiftTimer !== undefined) clearInterval(shiftTimer)
     if (hideTimer !== undefined) clearTimeout(hideTimer)
     mini.close()
@@ -372,6 +389,7 @@ export function createStore() {
   return {
     prefs,
     appearance,
+    dark,
     autoStart: url.start === true,
     awakeState,
     battery,
@@ -407,8 +425,10 @@ export function createStore() {
     startPreview,
     stop,
     toggle,
+    toggleAppearance,
     toggleFullscreen,
     toggleMini,
+    resetAppearance,
   }
 }
 
