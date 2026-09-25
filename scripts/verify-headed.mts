@@ -30,7 +30,7 @@ try {
   await page.locator('.stage').waitFor()
   await page.waitForFunction(() => document.title.includes('hearth'))
   const title = await page.title()
-  check(title.startsWith('screen lock held'), `the wake lock is held (title: ${title})`)
+  check(/^screen lock held/i.test(title), `the wake lock is held (title: ${title})`)
 
   const supported = await page.evaluate(() => 'documentPictureInPicture' in window)
   if (!supported) {
