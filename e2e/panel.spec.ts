@@ -14,18 +14,32 @@ test.describe('the panel', () => {
   test('wears the shared shell from the design system', async ({ page }) => {
     await openPanel(page)
 
-    // Header: an Inter 600 wordmark at 1.25rem, a text-sm menu, room below.
+    // Header: the reference's numbers, read off the blog. Wordmark Inter 600 at
+    // 1.25rem on a 1.2 line with -0.011em tracking, menu at 0.875rem/500 on the
+    // reading line, which is what keeps the menu from looking cramped.
     const wordmark = page.getByRole('heading', { level: 1 })
     await expect(wordmark).toHaveCSS('font-family', /Inter/)
     await expect(wordmark).toHaveCSS('font-size', '20px')
     await expect(wordmark).toHaveCSS('font-weight', '600')
+    await expect(wordmark).toHaveCSS('line-height', '24px')
+    await expect(wordmark).toHaveCSS('letter-spacing', '-0.22px')
     await expect(wordmark).toHaveCSS('color', 'rgb(68, 64, 58)')
-    const menuLink = page.getByRole('link', { name: 'anjula.dev', exact: true })
-    await expect(menuLink).toHaveCSS('font-family', /Inter/)
-    await expect(menuLink).toHaveCSS('font-size', '14px')
-    await expect(menuLink).toHaveCSS('font-weight', '500')
-    const header = page.locator('header')
-    await expect(header).toHaveCSS('padding-bottom', '40px')
+
+    const source = page.getByRole('link', { name: 'Source', exact: true })
+    await expect(source).toHaveCSS('font-family', /Inter/)
+    await expect(source).toHaveCSS('font-size', '14px')
+    await expect(source).toHaveCSS('font-weight', '500')
+    await expect(source).toHaveCSS('line-height', '28px')
+
+    // 1.75rem between menu items, from 640px.
+    const second = page.getByRole('link', { name: 'Design system', exact: true })
+    const sourceBox = await source.boundingBox()
+    const secondBox = await second.boundingBox()
+    const gap = (secondBox?.x ?? 0) - ((sourceBox?.x ?? 0) + (sourceBox?.width ?? 0))
+    expect(gap).toBeGreaterThan(26)
+    expect(gap).toBeLessThan(30)
+
+    await expect(page.locator('header')).toHaveCSS('padding-bottom', '40px')
 
     // Intro: a lede in ink, a supporting line in ink-700 capped at 42rem.
     await expect(page.locator('.intro-lede')).toHaveCSS('font-size', '18px')
@@ -34,23 +48,35 @@ test.describe('the panel', () => {
     const support = await page.locator('.intro-support').boundingBox()
     expect(support?.width ?? 0).toBeLessThanOrEqual(672)
 
-    // Footer: chrome, small, ink-500, and no rule dividing it from the page.
+    // Footer: chrome, small, ink-500, no rule dividing it from the page, and no
+    // licence or decision-making boilerplate.
     const footer = page.locator('footer')
     await expect(footer).toHaveCSS('font-family', /Inter/)
     await expect(footer).toHaveCSS('font-size', '14px')
     await expect(footer).toHaveCSS('color', 'rgb(118, 112, 100)')
     await expect(footer).toHaveCSS('border-top-width', '0px')
     await expect(page.locator('footer p.text-xs')).toHaveCSS('font-size', '12px')
+    await expect(footer).toContainText('Built by')
+    await expect(footer).not.toContainText('MIT')
+    await expect(footer).not.toContainText('GitHub')
   })
 
-  test('follows the system until the footer control says otherwise', async ({ page }) => {
+  test('follows the system until the header control says otherwise', async ({ page }) => {
     await openPanel(page, { appearance: 'auto' })
     const html = page.locator('html')
     await expect(html).not.toHaveClass(/dark/)
 
-    const control = page.getByRole('button', { name: 'appearance switcher' })
-    await expect(control).toHaveCSS('width', '48px')
-    await expect(control).toHaveCSS('height', '48px')
+    const control = page.locator('header').getByRole('button', { name: 'appearance switcher' })
+    await expect(control).toBeVisible()
+    const box = await control.boundingBox()
+    expect(box?.width).toBe(32)
+    expect(box?.height).toBe(32)
+
+    // The bulb sits after the wordmark and before the menu.
+    const wordmarkBox = await page.getByRole('heading', { level: 1 }).boundingBox()
+    const menuBox = await page.getByRole('link', { name: 'Source', exact: true }).boundingBox()
+    expect(box?.x ?? 0).toBeGreaterThanOrEqual((wordmarkBox?.x ?? 0) + (wordmarkBox?.width ?? 0))
+    expect(box?.x ?? 0).toBeLessThan(menuBox?.x ?? 0)
 
     await control.click()
     await expect(html).toHaveClass(/dark/)
