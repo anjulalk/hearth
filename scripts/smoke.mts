@@ -44,12 +44,22 @@ try {
   if (!hold.playing) problems.push('the media stream is not playing')
   if (!/· hearth$/.test(title)) problems.push(`the tab title does not report the hold: ${title}`)
 
-  // The bookmark path is the one people use, so it has to work twice.
-  const before = await page.evaluate(() => localStorage.getItem('hearth.session'))
+  // The bookmark path is the one people use, so it has to work twice: the same
+  // watch continues, and it comes back on its own.
+  const session = (): Promise<{ startedAt: number; seenAt: number } | null> =>
+    page.evaluate(() =>
+      JSON.parse(window.localStorage.getItem('hearth.session') ?? 'null'),
+    )
+  const before = await session()
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.locator('.stage').waitFor({ timeout: 30_000 })
-  const after = await page.evaluate(() => localStorage.getItem('hearth.session'))
-  if (!before || before !== after) problems.push('a reload restarted the watch instead of continuing it')
+  const after = await session()
+  if (!before || !after || before.startedAt !== after.startedAt) {
+    problems.push('a reload restarted the watch instead of continuing it')
+  }
+  if (!/· hearth$/.test(await page.title())) {
+    problems.push('the watch did not come back after a reload')
+  }
 
   const sw = await page.evaluate(async () => {
     const registration = await navigator.serviceWorker.getRegistration()
